@@ -1,5 +1,5 @@
-export function feeds(){
-    return `
+export function feeds() {
+  return `
     
     <div class="feed">
         <button id="createpost">Create Post</button>
@@ -7,31 +7,51 @@ export function feeds(){
         <p>The body</p>
 
         
-    </div>`
+    </div>`;
 }
 
-export function loginTemp() {
 
-    return `
-    <div class="login">
-        <input type="text" placeholder="name" id="name">
-        <input type="password" placeholder="password" id="password">
-        <button id="login"> Login</button>
-    </div>`
-    
-}
 
-export function loginTemp() {
+export function authTemplate() {
+  return `
+  <div class="main">
+  <input type="checkbox" id="chk" aria-hidden="true" />
+  <p id= "errors"></p>
 
-    return `
-    <div class="login">
-        <input type="text" placeholder="name" id="name">
-        <input type="password" placeholder="password" id="password">
-        <button id="signup"> Signup</button>
-    </div>`
-    
+  <div class="signup">
+      <div>
+          <label for="chk" id="label" aria-hidden="true">Sign up</label>
+          <input type="text" id="nickname" placeholder="Nickname" required />
+          <input type="number" id="age" placeholder="Age" required />
+          <div id="gender" class = "gender">
+            <label>
+                <input type="radio" name="gender" value="female"> Female
+            </label>
+            <label>
+                <input type="radio" name="gender" value="male"> Male
+            </label>
+          </div>
+          <input type="text" id="fname" placeholder="First Name" required />
+          <input type="text" id="lname" placeholder="Last Name" required />      
+          <input type="email" id="email" placeholder="Email" required />
+          <input type="password" id="pswd" placeholder="Password" required />
+          <input type="password" id="cpswd" placeholder="Confirm Password" required />
+          <button id = "signup">Sign up</button>
+      </div>
+  </div>
+
+  <div class="login">
+      <div>
+          <label for="chk" aria-hidden="true" id="label">Login</label>
+          <input type="text" id="username" placeholder="Email/Nickname" required />
+          <input type="password" name="pswd" placeholder="Password" required />
+          <button>Login</button>
+      </div>
+  </div>
+</div>
+      `;
 }
 
 export function createPost() {
-  return "create post"
+  return "create post";
 }

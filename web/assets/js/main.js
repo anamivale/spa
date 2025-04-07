@@ -1,4 +1,5 @@
-import { createPost, feeds, loginTemp } from "./templates.js"
+import { Signup } from "./auth.js"
+import { authTemplate, createPost, feeds } from "./templates.js"
 
 function Feeds() {
 let body = document.getElementById("app")
@@ -17,7 +18,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
         Feeds()
 
     }else{
-        document.getElementById("app").innerHTML = loginTemp()
+        document.getElementById("app").innerHTML = authTemplate()
+        document.getElementById("signup").addEventListener("click", ()=>{
+            console.log("clicked");
+            Signup()
+
+        })
 
     }
 
