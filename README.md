@@ -1,2 +1,3 @@
-# spa
+# Single Page Application
+
 
