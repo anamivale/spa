@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"spa/db"
 	"spa/models"
+	"spa/utils"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -23,18 +25,33 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	var RegisterData models.Signup
 	err := json.NewDecoder(r.Body).Decode(&RegisterData)
 	if err != nil {
-		//error display.
+		fmt.Println(err.Error())
+
+		response := map[string]interface{}{
+			"type": err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		return
 	}
-	err = db.InsertIntoUsersTable("1", RegisterData)
+	var id = utils.GenerateUUid()
+	err = db.InsertIntoUsersTable(id, RegisterData)
 	if err != nil {
-		//error display
+		fmt.Println(err.Error())
+		response := map[string]interface{}{
+			"type": err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 
-	// Return updated counts and user reaction status
 	response := map[string]interface{}{
-		"type":      "success",
-		
+		"type": "success",
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
