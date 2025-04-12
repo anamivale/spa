@@ -14,12 +14,6 @@ export function Signup() {
   const err = document.getElementById("errors");
   const emailInput = document.getElementById("email");
 
-if (!emailInput.checkValidity()) {
-	console.log("Please enter an email address");
-    return
-} 
-
-
   if (
     nickname == "" ||
     age == "" ||
@@ -31,9 +25,72 @@ if (!emailInput.checkValidity()) {
     cpswd == ""
   ) {
     document.getElementById("app").innerHTML = authTemplate();
-    err.textContent = "fill all the fields";
-    console.log(err.textContent);
+    loadAuthView("fill all the fields")
     return;
   }
-  document.getElementById("app").innerHTML = feeds();
+
+  if (!emailInput.checkValidity()) {
+    console.log("Please enter an email address");
+    loadAuthView("Please enter a valid email address")
+
+    return
+  }
+  if (pswd !== cpswd) {
+    console.log("passwords do not match");
+    loadAuthView("passwords do not match")
+
+    return
+  }
+
+
+
+
+  let ReqBody = {
+    nickname: nickname,
+    age: age,
+    gender: genderValue,
+    fname: fname,
+    lname: lname,
+    email: email,
+    password: pswd,
+  }
+
+  try {
+    fetch("http://localhost:8080/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify(ReqBody)
+    }).then((res) => {
+
+      return res.json()
+    }).then(data => {
+      console.log(data);
+      if (data.type === "success") {
+        document.getElementById("app").innerHTML = feeds();
+
+      } else {
+        loadAuthView(data.type)
+      }
+
+    })
+
+
+
+  } catch (error) {
+    console.log(error.message);
+
+
+
+  }
+}
+
+function loadAuthView(error) {
+  document.getElementById("app").innerHTML = authTemplate();
+  document.getElementById("errors").textContent = error
+  document.getElementById("signup").addEventListener("click", () => {
+    Signup();
+  });
 }
