@@ -1,12 +1,12 @@
 package models
 
 type Login struct {
-	username string
-	password string
+	Username string
+	Password string
 }
 
 type Signup struct {
-	Nickname string `json:"name"`
+	Nickname string `json:"nickname"`
 	Age      string `json:"age"`
 	Gender   string `json:"gender"`
 	Fname    string `json:"fname"`
