@@ -103,6 +103,74 @@ button:hover {
   gap: 5px;
   font-size: 1em;
 }
+.create-post {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  color: #ffffff;
+  width: 90%;
+  max-width: 500px;
+}
+
+.create-post h2 {
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  text-align: center;
+  color: #fff;
+}
+
+.create-post label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.create-post input[type="text"],
+.create-post textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 1.2rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.create-post input[type="text"]::placeholder,
+.create-post textarea::placeholder {
+  color: #ccc;
+}
+
+.create-post input[type="file"] {
+  margin-bottom: 1.2rem;
+  color: #fff;
+}
+
+.create-post input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.create-post button {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 10px;
+  background-color: #6694ba;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.create-post button:hover {
+  background-color: #00468c;
+}
+
+
+
 
 @media (max-width: 350px) {
   .main {
