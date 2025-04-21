@@ -7,6 +7,7 @@ import (
 	"spa/db"
 	"spa/models"
 	"spa/utils"
+	"time"
 )
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -48,11 +49,34 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sessionID := utils.GenerateUUid()
+	expiration := time.Now().Add(24 * time.Hour)
+	err = db.InsertSession(sessionID, id, expiration)
+
+	if err != nil {
+		fmt.Println(err.Error())
+		response := map[string]interface{}{
+			"type": err.Error(),
+		}
+
+		
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		Expires:  expiration,
+		Path:     "/",
+	})
+
 	response := map[string]interface{}{
 		"type": "success",
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+	
 
 }
