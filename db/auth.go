@@ -3,12 +3,40 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"spa/models"
 	"spa/utils"
 )
+// ***** Sign up ****
+func createUserTable() {
+	query := `
+	CREATE TABLE IF NOT EXISTS users(
+	ID TEXT NOT NULL,
+	nickname TEXT UNIQUE NOT NULL,
+	age INTERGER NOT NULL,
+	gender TEXT NOT NULL,
+	fname TEXT NOT NULL,
+	lname TEXT NOT NULL,
+	email TEXT PRIMARY KEY  NOT NULL,
+	password TEXT NOT NULL)`
+
+	_, err := Db.Prepare(query)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	_, err = Db.Exec(query)
+
+	if err != nil {
+
+		fmt.Println(err.Error())
+	}
+
+}
 
 func InsertIntoUsersTable(id string, resData models.Signup) error {
-	exists, err1 := CheckIfUserAlredyExist(resData.Nickname,resData.Email)
+	exists, err1 := CheckIfUserAlredyExist(resData.Nickname, resData.Email)
 	if err1 != nil {
 		return errors.New("problem registering, try again")
 	}
@@ -52,3 +80,7 @@ func CheckIfUserAlredyExist(nickname, email string) (bool, error) {
 	return exists, nil
 
 }
+
+
+//  **** Login ***
+
