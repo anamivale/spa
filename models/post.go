@@ -15,7 +15,7 @@ type PostResponse struct {
 	Title        string
 	Content      string
 	Username     string
-	Categories   []string
+	Categories   string
 	CreatedAt    string
 	UpdatedAt    time.Time
 	Comments     []Comment

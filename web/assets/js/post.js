@@ -1,4 +1,4 @@
-import { Feeds } from "./main.js"
+import { Feeds } from "./feeds.js"
 
 export function createPost() {
     let fileInput = document.getElementById("file")
@@ -21,7 +21,6 @@ export function createPost() {
                 req["filename"] = file
                 req["filecontent"] = fileContent
             }
-            console.log(req)
 
             sendRequest(req)
     

@@ -3,8 +3,7 @@ export function feeds() {
     
     <div class="feed">
         <button id="createpost">Create Post</button>
-        <h1>Title</h1>
-        <p>The body</p>
+        <div id = "posts" ></div>
 
         
     </div>`;
