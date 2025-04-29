@@ -1,19 +1,49 @@
 export function feeds() {
   return `
     
-    <div class="feed">
-        <button id="createpost">Create Post</button>
-        <div id = "posts" ></div>
+  <!-- Navbar -->
+  <div class="navbar">
+    <h1>Forum</h1>
+    <div class="actions">
+      <span class="bell">🔔</span>
+      <button >Logout</button>
+    </div>
+  </div>
 
-        
-    </div>`;
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Left Sidebar: Online Users -->
+    <div class="section left">
+      <h3>Online Users</h3>
+      <ul id="online-users">
+        <li>Alice</li>
+        <li>Bob</li>
+        <li>Charlie</li>
+      </ul>
+    </div>
+
+    <!-- Center: Feeds -->
+    <div class="section center" id="feeds">
+      <button id = "createpost"> Create post </button>
+
+     
+    </div>
+
+    <!-- Right Sidebar: Profile -->
+    <div class="section right">
+      <h3>User Profile</h3>
+      <p>Name: John Doe</p>
+      <p>Email: john@example.com</p>
+    </div>
+  </div>
+`;
 }
 
 
 
 export function authTemplate() {
   return `
-  <div class="main">
+  <div class="auth">
   <input type="checkbox" id="chk" aria-hidden="true" />
   <p id= "errors"></p>
 
