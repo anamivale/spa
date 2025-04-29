@@ -80,3 +80,27 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	
 
 }
+
+
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/logout" {
+		return
+	}
+	if r.Method != http.MethodPost {
+		return
+	}
+
+	cookie, err := r.Cookie("session_id")
+	if err == nil && cookie.Value != "" {
+		err := db.Logout(cookie.Value)
+		if err != nil {
+			fmt.Printf("Error deleting session: %v", err)
+		}
+	}
+
+	http.SetCookie(w, &http.Cookie{Name: "session_id", Value: "", Expires: time.Now().Add(-time.Hour), Path: "/", HttpOnly: true})
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode("sucsess")
+}
+

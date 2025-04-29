@@ -88,7 +88,7 @@ export function Signup() {
   }
 }
 
-function loadAuthView(error) {
+export function loadAuthView(error) {
   document.getElementById("app").innerHTML = authTemplate();
   document.getElementById("errors").textContent = error
   document.getElementById("signup").addEventListener("click", () => {

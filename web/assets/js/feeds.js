@@ -1,3 +1,4 @@
+import { Logout } from "./logout.js";
 import { createPost } from "./post.js";
 import { createPostForm, feeds } from "./templates.js";
 
@@ -5,6 +6,10 @@ export function Feeds() {
   let body = document.getElementById("app");
   body.innerHTML = feeds();
   getPosts();
+
+  document.getElementById("logout").addEventListener("click", ()=>{
+    Logout()
+  })
 
   let Createpost = document.getElementById("createpost");
 
@@ -45,7 +50,8 @@ function getPosts() {
           categoriesUi.textContent = cat;
 
           let timeUi = document.createElement("p");
-          timeUi.textContent = element.CreatedAt;
+          // Categories: Entertainment,Lifestyle | Created Mar 2025 
+          timeUi.textContent =" Categories: "+cat +" | Created "+ element.Time;
 
           let img = document.createElement("img")
           img.src = element.Imgurl

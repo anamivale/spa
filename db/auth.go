@@ -7,18 +7,20 @@ import (
 	"spa/models"
 	"spa/utils"
 )
+
 // ***** Sign up ****
 func createUserTable() {
 	query := `
 	CREATE TABLE IF NOT EXISTS users(
-	ID TEXT NOT NULL,
+	user_id TEXT NOT NULL,
 	nickname TEXT UNIQUE NOT NULL,
 	age INTERGER NOT NULL,
 	gender TEXT NOT NULL,
 	fname TEXT NOT NULL,
 	lname TEXT NOT NULL,
 	email TEXT PRIMARY KEY  NOT NULL,
-	password TEXT NOT NULL)`
+	status TEXT CHECK (status IN ('on', 'off')) DEFAULT 'on',
+  	password TEXT NOT NULL)`
 
 	_, err := Db.Prepare(query)
 
@@ -81,6 +83,10 @@ func CheckIfUserAlredyExist(nickname, email string) (bool, error) {
 
 }
 
-
 //  **** Login ***
 
+// **** Logout ***
+func Logout(id string) error {
+	_, err = Db.Exec(`DELETE FROM sessions WHERE session_id = ?`, id)
+	return err
+}

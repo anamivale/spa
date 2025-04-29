@@ -6,7 +6,7 @@ export function feeds() {
     <h1>Forum</h1>
     <div class="actions">
       <span class="bell">🔔</span>
-      <button >Logout</button>
+      <button id="logout">Logout</button>
     </div>
   </div>
 

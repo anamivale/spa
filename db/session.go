@@ -11,7 +11,7 @@ func CreateSessionTable() error {
 	session_id TEXT PRIMARY KEY,
 	user_id TEXT UNIQUE NOT NULL,
 	expires_at DATETIME NOT NULL,
-	FOREIGN KEY (user_id) REFERENCES users(ID) ON DELETE CASCADE
+	FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 	)`
 
 	_, err := Db.Prepare(query)
