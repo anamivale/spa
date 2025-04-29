@@ -19,4 +19,7 @@ func Init() {
 	createUserTable()
 	CreateSessionTable()
 	CreatePostTable()
+	CommentsTable()
+	ReactionTable()
+
 }
