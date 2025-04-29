@@ -25,6 +25,7 @@ func HandleCreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 	data.PostID = utils.GenerateUUid()
 
+
 	if data.Imgurl != "" {
 		err = utils.SaveImages(data.ImgContent, data.Imgurl)
 		if err != nil {
@@ -36,8 +37,9 @@ func HandleCreatePost(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(response)
 			return
 		}
+		data.Imgurl = "web/assets/uploads/" + data.Imgurl
+
 	}
-	data.Imgurl = "web/assets/uploads/" + data.Imgurl
 
 
 	err = db.InsertPost(data)
