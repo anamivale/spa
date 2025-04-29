@@ -9,7 +9,9 @@ export function Feeds() {
   let Createpost = document.getElementById("createpost");
 
   Createpost.addEventListener("click", () => {
-    body.innerHTML = createPostForm();
+    let feedsUi = document.getElementById("feeds");
+
+    feedsUi.innerHTML = createPostForm();
 
     let post = document.getElementById("create");
 
@@ -22,9 +24,8 @@ function getPosts() {
   fetch("/feeds")
     .then((res) => res.json())
     .then((data) => {
-      console.log(data);
       if (data.type == "success") {
-        let feedsUi = document.getElementById("posts");
+        let feedsUi = document.getElementById("feeds");
         feedsUi.className = "posts-container";
         data.response.forEach((element) => {
           let elementUi = document.createElement("div");
@@ -46,11 +47,18 @@ function getPosts() {
           let timeUi = document.createElement("p");
           timeUi.textContent = element.CreatedAt;
 
+          let img = document.createElement("img")
+          img.src = element.Imgurl
+          img.style.width = "70%"
+          
+
           elementUi.appendChild(titleUi);
           elementUi.appendChild(contentUi);
           elementUi.appendChild(categoriesUi);
           elementUi.appendChild(timeUi);
-
+          if (element.Imgurl != ""){          
+          elementUi.appendChild(img)
+          }
           feedsUi.appendChild(elementUi);
         });
       }
