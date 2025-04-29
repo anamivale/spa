@@ -16,8 +16,8 @@ type PostResponse struct {
 	Content      string
 	Username     string
 	Categories   string
-	CreatedAt    string
-	UpdatedAt    time.Time
+	CreatedAt    time.Time
+	Time         string
 	Comments     []Comment
 	LikeCount    int
 	DislikeCount int
