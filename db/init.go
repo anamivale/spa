@@ -16,8 +16,7 @@ func Init() {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-createUserTable()
- CreateSessionTable()
+	createUserTable()
+	CreateSessionTable()
+	CreatePostTable()
 }
-
-
