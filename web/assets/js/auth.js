@@ -1,3 +1,4 @@
+import { Feeds } from "./feeds.js";
 import { authTemplate, feeds } from "./templates.js";
 
 export function Signup() {
@@ -69,7 +70,7 @@ export function Signup() {
     }).then(data => {
       console.log(data);
       if (data.type === "success") {
-        document.getElementById("app").innerHTML = feeds();
+        Feeds()
 
       } else {
         loadAuthView(data.type)
