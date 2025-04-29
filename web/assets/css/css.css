@@ -1,14 +1,16 @@
-body {
+body{
   margin: 0;
   padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+  border: 0;
+}
+#app {
+  margin: 0;
+  padding: 0;
   font-family: "Jost", sans-serif;
   background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
 }
-.main {
+
+.auth {
   width: 350px;
   height: 850px;
   background: rgb(214, 211, 211);
@@ -16,6 +18,7 @@ body {
   border-radius: 10px;
   box-shadow: 5px 20px 50px #000;
 }
+
 #chk {
   display: none;
 }
@@ -25,6 +28,7 @@ body {
   width: 100%;
   height: 100%;
 }
+
 #label {
   color: #fff;
   font-size: 2.3em;
@@ -35,6 +39,7 @@ body {
   cursor: pointer;
   transition: 0.5s ease-in-out;
 }
+
 input {
   width: 60%;
   height: 20px;
@@ -47,6 +52,7 @@ input {
   outline: none;
   border-radius: 5px;
 }
+
 button {
   width: 60%;
   height: 40px;
@@ -64,9 +70,11 @@ button {
   transition: 0.2s ease-in;
   cursor: pointer;
 }
+
 button:hover {
   background: #6d44b8;
 }
+
 .login {
   height: 100%;
   background: #eee;
@@ -74,18 +82,21 @@ button:hover {
   transform: translateY(-180px);
   transition: 0.8s ease-in-out;
 }
+
 .login label {
   color: #573b8a;
   transform: scale(0.6);
 }
 
-#chk:checked ~ .login {
+#chk:checked~.login {
   transform: translateY(-850px);
 }
-#chk:checked ~ .login label {
+
+#chk:checked~.login label {
   transform: scale(1);
 }
-#chk:checked ~ .signup label {
+
+#chk:checked~.signup label {
   transform: scale(0.6);
 }
 
@@ -103,15 +114,78 @@ button:hover {
   gap: 5px;
   font-size: 1em;
 }
+
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #00468C;
+  color: white;
+  padding: 10px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* keeps it above other content */
+}
+
+.navbar h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.navbar .actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.navbar .actions button {
+  background-color: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.navbar .bell {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* Main layout */
+.main {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.section {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.left,
+.right {
+  width: 20%;
+  height: auto;
+}
+
+.center {
+  flex-grow: 1;
+}
+
 .create-post {
-  background: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
   padding: 2rem;
   border-radius: 15px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
   color: #ffffff;
-  width: 90%;
-  max-width: 500px;
+  /* max-width: 500px; */
 }
 
 .create-post h2 {
@@ -139,10 +213,6 @@ button:hover {
   font-size: 1rem;
 }
 
-.create-post input[type="text"]::placeholder,
-.create-post textarea::placeholder {
-  color: #ccc;
-}
 
 .create-post input[type="file"] {
   margin-bottom: 1.2rem;
@@ -169,48 +239,65 @@ button:hover {
   background-color: #00468c;
 }
 
-.title{
+.title {
   color: white;
 }
 
-  .posts-container {
-    display: flex;
+.posts-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background-color: #f8f9fa;
+}
+
+.post {
+  padding: 16px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.post:hover {
+  transform: scale(1.01);
+}
+
+.post .title {
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 8px;
+  color: #00468C;
+}
+
+.post p {
+  margin: 4px 0;
+  color: #333;
+}
+
+
+
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main {
     flex-direction: column;
-    gap: 16px;
-    padding: 16px;
-    background-color: #f8f9fa;
   }
 
-  .post {
-    padding: 16px;
-    border-radius: 12px;
-    background-color: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
+  .left,
+  .right {
+    width: 80%;
   }
-
-  .post:hover {
-    transform: scale(1.01);
-  }
-
-  .post .title {
-    font-weight: bold;
-    font-size: 18px;
-    margin-bottom: 8px;
-    color: #00468C;
-  }
-
-  .post p {
-    margin: 4px 0;
-    color: #333;
-  }
-
-
+}
 
 
 @media (max-width: 350px) {
   .main {
     width: 100%;
-    height: 800px;
   }
+  .left,
+  .right {
+    width: 80%;
+  }
+
 }
