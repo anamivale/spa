@@ -14,8 +14,9 @@ func CreatePostTable() error {
 	content TEXT NOT NULL,
 	categories TEXT,
 	imgurl TEXT,
+
 	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (user_id) REFERENCES users(ID) ON DELETE CASCADE
+	FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 )`
 
 	_, err = Db.Exec(query)
