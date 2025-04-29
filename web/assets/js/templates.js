@@ -52,6 +52,44 @@ export function authTemplate() {
       `;
 }
 
-export function createPost() {
-  return "create post";
+export function createPostForm() {
+  return `
+  <div class="create-post">
+  <h2>Create a New Post</h2>
+  <div>
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required />
+    <br /><br />
+  <div class = "cat">
+
+    <label for="content">Content:</label>
+    <textarea id="content" name="content" rows="5" cols="40" required></textarea>
+    <br /><br />
+
+    <label for="category">Category:</label>
+    <label>
+\      health
+      <input type="checkbox" name="category" value="health" />
+
+    </label>
+        <br /><br />
+
+    <label>
+      health
+            <input type="checkbox" name="category" value="health" />
+
+    </label>
+        <br /><br />
+
+    <label>
+      health
+            <input type="checkbox" name="category" value="health" />
+
+    </label>
+    <br /><br />
+    <input type="file" id = "file" name="img" accept="img/*" />
+
+    <button type="submit" id = "create" >Create Post</button>
+  </div>
+</div>`
 }
