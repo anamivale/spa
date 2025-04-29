@@ -11,6 +11,8 @@ func main() {
 	db.Init()
 	http.Handle("/web/", http.StripPrefix("/web/", http.FileServer(http.Dir("web"))))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { http.ServeFile(w, r, "web/index.html") })
+	http.HandleFunc("/post", handlers.HandleCreatePost)
+
 	http.HandleFunc("/register", handlers.Register)
 	fmt.Println("http://localhost:8080")
 
