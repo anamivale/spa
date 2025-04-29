@@ -1,7 +1,8 @@
 import { Signup } from "./auth.js"
-import { authTemplate, createPost, feeds } from "./templates.js"
+import { createPost } from "./post.js"
+import { authTemplate,  createPostForm,  feeds } from "./templates.js"
 
-function Feeds() {
+export function Feeds() {
 
 let body = document.getElementById("app")
 body.innerHTML = feeds()
@@ -9,12 +10,10 @@ body.innerHTML = feeds()
 let Createpost = document.getElementById("createpost")
 
 Createpost.addEventListener("click", ()=>{
-    console.log("clicked");
     
-    body.innerHTML = createPost()
+    body.innerHTML = createPostForm()
 
     let post = document.getElementById("create")
-    console.log(post);
     
 
     post.addEventListener("click", ()=>{
