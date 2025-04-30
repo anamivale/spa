@@ -1,4 +1,4 @@
-body{
+body {
   margin: 0;
   padding: 0;
   border: 0;
@@ -8,6 +8,7 @@ body{
   padding: 0;
   font-family: "Jost", sans-serif;
   background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
+  min-height: 100vh;
 }
 
 .auth {
@@ -88,15 +89,15 @@ button:hover {
   transform: scale(0.6);
 }
 
-#chk:checked~.login {
+#chk:checked ~ .login {
   transform: translateY(-850px);
 }
 
-#chk:checked~.login label {
+#chk:checked ~ .login label {
   transform: scale(1);
 }
 
-#chk:checked~.signup label {
+#chk:checked ~ .signup label {
   transform: scale(0.6);
 }
 
@@ -115,13 +116,12 @@ button:hover {
   font-size: 1em;
 }
 
-
 /* Navbar */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #00468C;
+  background-color: #00468c;
   color: white;
   padding: 10px 20px;
   position: sticky;
@@ -213,7 +213,6 @@ button:hover {
   font-size: 1rem;
 }
 
-
 .create-post input[type="file"] {
   margin-bottom: 1.2rem;
   color: #fff;
@@ -267,16 +266,26 @@ button:hover {
   font-weight: bold;
   font-size: 18px;
   margin-bottom: 8px;
-  color: #00468C;
+  color: #00468c;
 }
 
 .post p {
   margin: 4px 0;
   color: #333;
 }
+/* reactions */
 
+.reactions {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
 
-
+.reactions button {
+  flex: 1;
+  width: 10%;
+  margin: 10px;
+}
 
 /* Responsive */
 @media (max-width: 768px) {
@@ -290,7 +299,6 @@ button:hover {
   }
 }
 
-
 @media (max-width: 350px) {
   .main {
     width: 100%;
@@ -299,5 +307,4 @@ button:hover {
   .right {
     width: 80%;
   }
-
 }

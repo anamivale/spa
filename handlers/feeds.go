@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
 	"spa/db"
 )
 
-
-func HandleGetPosts(w http.ResponseWriter, r *http.Request)  {
+func HandleGetPosts(w http.ResponseWriter, r *http.Request) {
+	user := db.GetUser(r)
 
 	posts, err := db.GetPosts()
-
 	if err != nil {
 		fmt.Println(err.Error())
 		response := map[string]interface{}{
@@ -22,11 +22,10 @@ func HandleGetPosts(w http.ResponseWriter, r *http.Request)  {
 	}
 
 	response := map[string]interface{}{
-		"type": "success",
+		"type":     "success",
 		"response": posts,
+		"user":     user,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-
-	
 }

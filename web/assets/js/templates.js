@@ -32,8 +32,8 @@ export function feeds() {
     <!-- Right Sidebar: Profile -->
     <div class="section right">
       <h3>User Profile</h3>
-      <p>Name: John Doe</p>
-      <p>Email: john@example.com</p>
+      <p id ="user_name">Name: John Doe</p>
+      <p id="user_email">Email: john@example.com</p>
     </div>
   </div>
 `;

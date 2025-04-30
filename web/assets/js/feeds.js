@@ -7,9 +7,9 @@ export function Feeds() {
   body.innerHTML = feeds();
   getPosts();
 
-  document.getElementById("logout").addEventListener("click", ()=>{
-    Logout()
-  })
+  document.getElementById("logout").addEventListener("click", () => {
+    Logout();
+  });
 
   let Createpost = document.getElementById("createpost");
 
@@ -30,43 +30,73 @@ function getPosts() {
     .then((res) => res.json())
     .then((data) => {
       if (data.type == "success") {
+        //***********************************************feeds *********************************************
         let feedsUi = document.getElementById("feeds");
         feedsUi.className = "posts-container";
-        data.response.forEach((element) => {
+        if (data.response == null) {
           let elementUi = document.createElement("div");
-          elementUi.className = "post";
-          let titleUi = document.createElement("p");
-          titleUi.className = "title";
-          titleUi.textContent = element.Title;
-
-          let contentUi = document.createElement("p");
-          contentUi.textContent = element.Content;
-
-          let categoriesUi = document.createElement("p");
-          let cat = element.Categories.replace("[", "");
-          cat = cat.replace("]", "");
-          cat = cat.replaceAll('"', "");
-
-          categoriesUi.textContent = cat;
-
-          let timeUi = document.createElement("p");
-          // Categories: Entertainment,Lifestyle | Created Mar 2025 
-          timeUi.textContent =" Categories: "+cat +" | Created "+ element.Time;
-
-          let img = document.createElement("img")
-          img.src = element.Imgurl
-          img.style.width = "70%"
-          
-
-          elementUi.appendChild(titleUi);
-          elementUi.appendChild(contentUi);
-          elementUi.appendChild(categoriesUi);
-          elementUi.appendChild(timeUi);
-          if (element.Imgurl != ""){          
-          elementUi.appendChild(img)
-          }
+          elementUi.textContent = "No posts yet, be the first to post!";
           feedsUi.appendChild(elementUi);
-        });
+        } else {
+          data.response?.forEach((element) => {
+            let elementUi = document.createElement("div");
+            elementUi.className = "post";
+            let titleUi = document.createElement("p");
+            titleUi.className = "title";
+            titleUi.textContent = element.Title;
+
+            let contentUi = document.createElement("p");
+            contentUi.textContent = element.Content;
+
+            let cat = element.Categories.replace("[", "");
+            cat = cat.replace("]", "");
+            cat = cat.replaceAll('"', "");
+
+            let timeUi = document.createElement("p");
+            timeUi.textContent =
+              " Categories: " + cat + " | Created " + element.Time;
+
+            let img = document.createElement("img");
+            img.src = element.Imgurl;
+            img.style.width = "70%";
+
+            //*********************************************** reactions *********************************************
+
+            let reactions = document.createElement("div");
+            reactions.className = "reactions";
+            let likes = document.createElement("button");
+            let dislikes = document.createElement("button");
+            let comment = document.createElement("button");
+            reactions.appendChild(likes);
+            reactions.appendChild(dislikes);
+            reactions.appendChild(comment);
+
+            likes.textContent = "likes:0";
+            dislikes.textContent = "dislikes:0";
+            comment.textContent = "comments:0";
+
+            //*********************************************** end *********************************************
+
+            elementUi.appendChild(titleUi);
+            elementUi.appendChild(contentUi);
+            elementUi.appendChild(timeUi);
+            if (element.Imgurl != "") {
+              elementUi.appendChild(img);
+            }
+
+            elementUi.appendChild(reactions);
+            feedsUi.appendChild(elementUi);
+          });
+        }
+        //*********************************************** end *********************************************
+
+        //*********************************************** user *********************************************
+
+        let name = document.getElementById("user_name");
+        let email = document.getElementById("user_email");
+        name.textContent = data.user[0];
+        email.textContent = data.user[1];
+        //*********************************************** end *********************************************
       }
     })
     .catch((err) => {

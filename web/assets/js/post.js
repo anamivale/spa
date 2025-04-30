@@ -7,7 +7,6 @@ export function createPost() {
     let selectedCat = document.querySelectorAll('input[name="category"]:checked')
 
     let categories = Array.from(selectedCat).map(cat => cat.value)
-    console.log(content)
 
     let req = {
         title: title,
