@@ -34,3 +34,9 @@ type Post struct {
 	Imgurl     string   `json:"filename"`
 	Categories []string `json:"categories"`
 }
+type LikeRequest struct {
+	UserID    string `json:"user_id"`
+	PostID    string `json:"post_id,omitempty"`
+	CommentID string `json:"comment_id,omitempty"`
+	LikeType  string `json:"like_type"`
+}
