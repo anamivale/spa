@@ -17,6 +17,39 @@ type LoginRequest struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var creds LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	ok, err := db.CheckCredentials(creds.Username, creds.Password)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	if !ok {
+		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+		return
+	}
+
+	// Set a session cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    creds.Username,
+		Path:     "/",
+		HttpOnly: true,
+	})
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Login successful",
+	})
+
 
 }
 
