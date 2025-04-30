@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
+
 	"spa/models"
 	"spa/utils"
 )
@@ -23,54 +25,46 @@ func createUserTable() {
   	password TEXT NOT NULL)`
 
 	_, err := Db.Prepare(query)
-
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
 	_, err = Db.Exec(query)
-
 	if err != nil {
-
 		fmt.Println(err.Error())
 	}
-
 }
 
 func InsertIntoUsersTable(id string, resData models.Signup) error {
 	exists, err1 := CheckIfUserAlredyExist(resData.Nickname, resData.Email)
 	if err1 != nil {
-		return errors.New("problem registering, try again")
+		return errors.New("problem registering, try again, check your details")
 	}
 	if exists {
 		return errors.New("email or nickname already taken")
 	}
 
 	query := `
-	INSERT INTO users (ID,nickname,age, gender, fname, lname, email, password) VALUES (?,?,?,?,?,?,?,?)
+	INSERT INTO users (user_id,nickname,age, gender, fname, lname, email, password) VALUES (?,?,?,?,?,?,?,?)
 	`
 
 	_, err := Db.Prepare(query)
-
 	if err != nil {
 		return err
 	}
 	password, err := utils.EncryptPassword(resData.Password)
 	if err != nil {
-		return errors.New("problem registering, try again")
+		return errors.New("problem registering, try again, check your password")
 	}
 
 	_, err = Db.Exec(query, id, resData.Nickname, resData.Age, resData.Gender, resData.Fname, resData.Lname, resData.Email, password)
-
 	if err != nil {
-
 		return errors.New("problem registering, try again")
 	}
 	return nil
 }
 
 func CheckIfUserAlredyExist(nickname, email string) (bool, error) {
-
 	var exists bool
 
 	err = Db.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE nickname=? Or email=?)", nickname, email).Scan(&exists)
@@ -80,13 +74,34 @@ func CheckIfUserAlredyExist(nickname, email string) (bool, error) {
 	}
 
 	return exists, nil
-
 }
 
 //  **** Login ***
 
 // **** Logout ***
-func Logout(id string) error {
+func DeleteSession(id string) error {
 	_, err = Db.Exec(`DELETE FROM sessions WHERE session_id = ?`, id)
 	return err
+}
+
+// **** getuser ***
+
+func GetUser(r *http.Request) []string {
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		// Cookie not found
+		fmt.Println("Cookie not found:", err)
+	}
+	id := cookie.Value
+	var name string
+	var email string
+
+	query := "SELECT nickname, email FROM users WHERE user_id = ?"
+
+	err = Db.QueryRow(query, id).Scan(&name, &email)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil
+	}
+	return []string{name, email}
 }
