@@ -66,13 +66,14 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
-		Value:    sessionID,
+		Value:    id,
 		Expires:  expiration,
 		Path:     "/",
 	})
 
 	response := map[string]interface{}{
 		"type": "success",
+		"user" : RegisterData.Nickname,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -87,13 +88,11 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/logout" {
 		return
 	}
-	if r.Method != http.MethodPost {
-		return
-	}
+	
 
 	cookie, err := r.Cookie("session_id")
 	if err == nil && cookie.Value != "" {
-		err := db.Logout(cookie.Value)
+		err := db.DeleteSession(cookie.Value)
 		if err != nil {
 			fmt.Printf("Error deleting session: %v", err)
 		}
