@@ -10,11 +10,13 @@ import (
 	"time"
 )
 
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func Login(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method != http.MethodPost {
-		return
-	}
 
 }
 
@@ -81,6 +83,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	
 
 }
+
 
 
 
