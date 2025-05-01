@@ -102,7 +102,8 @@ export function Login() {
     })
     .then((data) => {
       console.log("Login successful:", data);
-      location.reload();
+      window.location.href="/";
+      //location.reload();
     })
     .catch((err) => alert(err.message));
 }
