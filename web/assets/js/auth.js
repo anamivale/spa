@@ -26,25 +26,27 @@ export function Signup() {
     cpswd == ""
   ) {
     document.getElementById("app").innerHTML = authTemplate();
-    loadAuthView("fill all the fields")
+    loadAuthView("fill all the fields");
     return;
   }
 
+  if (Number(age) < 16 && Number(age) > 2009) {
+    loadAuthView("age must be between 16 and 2009");
+
+    return;
+  }
   if (!emailInput.checkValidity()) {
     console.log("Please enter an email address");
-    loadAuthView("Please enter a valid email address")
+    loadAuthView("Please enter a valid email address");
 
-    return
+    return;
   }
   if (pswd !== cpswd) {
     console.log("passwords do not match");
-    loadAuthView("passwords do not match")
+    loadAuthView("passwords do not match");
 
-    return
+    return;
   }
-
-
-
 
   let ReqBody = {
     nickname: nickname,
@@ -54,43 +56,36 @@ export function Signup() {
     lname: lname,
     email: email,
     password: pswd,
-  }
+  };
 
   try {
     fetch("http://localhost:8080/register", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
 
-      body: JSON.stringify(ReqBody)
-    }).then((res) => {
-
-      return res.json()
-    }).then(data => {
-      console.log(data);
-      if (data.type === "success") {
-        Feeds()
-
-      } else {
-        loadAuthView(data.type)
-      }
-
+      body: JSON.stringify(ReqBody),
     })
-
-
-
+      .then((res) => {
+        return res.json();
+      })
+      .then((data) => {
+        console.log(data);
+        if (data.type === "success") {
+          Feeds();
+        } else {
+          loadAuthView(data.type);
+        }
+      });
   } catch (error) {
     console.log(error.message);
-
-
-
   }
 }
 
 export function loadAuthView(error) {
   document.getElementById("app").innerHTML = authTemplate();
-  document.getElementById("errors").textContent = error
+  document.getElementById("errors").textContent = error;
   document.getElementById("signup").addEventListener("click", () => {
     Signup();
   });
