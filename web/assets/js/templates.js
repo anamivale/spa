@@ -65,16 +65,16 @@ export function authTemplate() {
           <input type="email" id="email" placeholder="Email" required />
           <input type="password" id="pswd" placeholder="Password" required />
           <input type="password" id="cpswd" placeholder="Confirm Password" required />
-          <button id = "signup">Sign up</button>
+          <button id="signup">Sign up</button>
       </div>
   </div>
 
   <div class="login">
       <div>
           <label for="chk" aria-hidden="true" id="label">Login</label>
-          <input type="text" id="username" placeholder="Email/Nickname" required />
-          <input type="password" name="pswd" placeholder="Password" required />
-          <button>Login</button>
+          <input type="text" id="username" placeholder="Email/Nickname" class="username" required />
+          <input type="password" id="password" name="pswd" placeholder="Password" class="password" required />
+          <button id="login">Login</button>
       </div>
   </div>
 </div>
