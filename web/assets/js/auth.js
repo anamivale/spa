@@ -88,8 +88,8 @@ export function Signup() {
   }
 }
 export function Login() {
-  const username = document.querySelector("#username").value;
-  const password = document.querySelector("#password").value;
+  const username = document.getElementById("username").value
+  const password = document.getElementById("password").value;
 
   fetch("/login", {
     method: "POST",
