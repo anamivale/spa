@@ -44,7 +44,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Value:    id,
 		Expires: time.Now().Add(24*time.Hour),
 		Path:     "/",
-		HttpOnly: true,
 	})
 
 	json.NewEncoder(w).Encode(map[string]string{
