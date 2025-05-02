@@ -15,6 +15,7 @@ func main() {
 	http.HandleFunc("/feeds", handlers.HandleGetPosts)
 	http.HandleFunc("/logout", handlers.LogoutHandler)
 	http.HandleFunc("/like", handlers.LikeHandler)
+	http.HandleFunc("/login", handlers.Login)
 
 	http.HandleFunc("/register", handlers.Register)
 	fmt.Println("http://localhost:8080")
