@@ -28,7 +28,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok, err := db.CheckCredentials(creds.Username, creds.Password)
+	id, ok, err := db.CheckCredentials(creds.Username, creds.Password)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -40,8 +40,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Set a session cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session",
-		Value:    creds.Username,
+		Name:     "session_id",
+		Value:    id,
+		Expires: time.Now().Add(24*time.Hour),
 		Path:     "/",
 		HttpOnly: true,
 	})
