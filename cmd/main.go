@@ -16,6 +16,9 @@ func main() {
 	http.HandleFunc("/logout", handlers.LogoutHandler)
 	http.HandleFunc("/like", handlers.LikeHandler)
 	http.HandleFunc("/login", handlers.Login)
+	http.HandleFunc("/comment", handlers.HandleCreateComment)
+	http.HandleFunc("/comments", handlers.HandleGetComments)
+
 
 	http.HandleFunc("/register", handlers.Register)
 	fmt.Println("http://localhost:8080")
