@@ -102,7 +102,7 @@ export function Login() {
     })
     .then((data) => {
       console.log("Login successful:", data);
-      window.location.href="/";
+      Feeds();
       //location.reload();
     })
     .catch((err) => alert(err.message));
