@@ -78,19 +78,20 @@ func CheckIfUserAlredyExist(nickname, email string) (bool, error) {
 }
 
 // **** Login ***
-func CheckCredentials(username, password string) (bool, error) {
-	row := Db.QueryRow("SELECT password FROM users WHERE username = ?", username)
+func CheckCredentials(username, password string) (string, bool, error) {
+	row := Db.QueryRow("SELECT password, user_id FROM users WHERE nickname = ? OR email = ?", username, username)
 	var hashed string
-	err := row.Scan(hashed)
+	var id string
+	err := row.Scan(&hashed, &id)
 
 	if err == sql.ErrNoRows {
-		return false, nil
+		return "", false, nil
 	}
 
 	if err != nil {
-		return false, err
+		return "",false, err
 	}
-	return utils.CheckPasswordHash(password, hashed), nil
+	return id, utils.CheckPasswordHash(password, hashed), nil
 }
 
 // **** Logout ***
