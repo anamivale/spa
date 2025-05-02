@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login/Register Forms -->
+        <div id="auth-container" class="container">
+            <div class="tab-container">
+                <div class="tab active" data-tab="login">Login</div>
+                <div class="tab" data-tab="register">Register</div>
+            </div>
+            
+            <div id="login-form" class="form active">
+                <h2>Login</h2>
+                <div class="input-group">
+                    <label for="login-username">Username</label>
+                    <input type="text" id="login-username" placeholder="Enter your username">
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password">
+                </div>
+                <button id="login-button" class="btn">Login</button>
+                <p id="login-error" class="error-message"></p>
+            </div>
+            
+            <div id="register-form" class="form">
+                <h2>Register</h2>
+                <div class="input-group">
+                    <label for="register-username">Username</label>
+                    <input type="text" id="register-username" placeholder="Choose a username">
+                </div>
+                <div class="input-group">
+                    <label for="register-password">Password</label>
+                    <input type="password" id="register-password" placeholder="Choose a password">
+                </div>
+                <div class="input-group">
+                    <label for="register-confirm">Confirm Password</label>
+                    <input type="password" id="register-confirm" placeholder="Confirm your password">
+                </div>
+                <button id="register-button" class="btn">Register</button>
+                <p id="register-error" class="error-message"></p>
+            </div>
+        </div>
+        
+        <!-- Chat Interface -->
+        <div id="chat-container" class="container hidden">
+            <div class="header">
+                <h1>Real-time Chat</h1>
+                <div class="notification-bell">
+                    <i class="fas fa-bell"></i>
+                    <span id="notification-count" class="hidden">0</span>
+                </div>
+                <button id="logout-button" class="btn-small">Logout</button>
+            </div>
+            
+            <div class="chat-area">
+                <div class="users-list">
+                    <h2>Users</h2>
+                    <ul id="users"></ul>
+                </div>
+                
+                <div class="message-area">
+                    <div id="chat-header">
+                        <h2>Select a user to start chatting</h2>
+                    </div>
+                    <div id="messages"></div>
+                    <div id="message-input" class="hidden">
+                        <textarea id="message-text" placeholder="Type your message..."></textarea>
+                        <button id="send-button" class="btn">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
