@@ -1,4 +1,4 @@
-import { Signup } from "./auth.js";
+import { Signup, Login } from "./auth.js";
 import { Feeds } from "./feeds.js";
 import { authTemplate } from "./templates.js";
 
@@ -11,6 +11,10 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("clicked");
       Signup();
     });
+    document.getElementById("login").addEventListener("click", () => {
+      console.log("clicked");
+      Login();
+    })
   }
 });
 

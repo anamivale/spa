@@ -10,6 +10,7 @@ import (
 	"spa/utils"
 )
 
+
 // ***** Sign up ****
 func createUserTable() {
 	query := `
@@ -76,7 +77,22 @@ func CheckIfUserAlredyExist(nickname, email string) (bool, error) {
 	return exists, nil
 }
 
-//  **** Login ***
+// **** Login ***
+func CheckCredentials(username, password string) (string, bool, error) {
+	row := Db.QueryRow("SELECT password, user_id FROM users WHERE nickname = ? OR email = ?", username, username)
+	var hashed string
+	var id string
+	err := row.Scan(&hashed, &id)
+
+	if err == sql.ErrNoRows {
+		return "", false, nil
+	}
+
+	if err != nil {
+		return "",false, err
+	}
+	return id, utils.CheckPasswordHash(password, hashed), nil
+}
 
 // **** Logout ***
 func DeleteSession(id string) error {
