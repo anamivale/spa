@@ -109,6 +109,13 @@ async function getPosts() {
         elementUi.appendChild(reactions);
         feedsUi.appendChild(elementUi);
       });
+    let   online_users = document.getElementById("online-users")
+      data.users.map(ele =>{
+        let online_user = document.createElement("li")
+        online_user.textContent = ele
+        online_users.appendChild(online_user)
+        
+      })
 
       let name = document.getElementById("user_name");
       let email = document.getElementById("user_email");
