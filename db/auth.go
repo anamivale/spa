@@ -10,7 +10,6 @@ import (
 	"spa/utils"
 )
 
-
 // ***** Sign up ****
 func createUserTable() {
 	query := `
@@ -89,15 +88,43 @@ func CheckCredentials(username, password string) (string, bool, error) {
 	}
 
 	if err != nil {
-		return "",false, err
+		return "", false, err
 	}
-	return id, utils.CheckPasswordHash(password, hashed), nil
+	ok :=  utils.CheckPasswordHash(password, hashed)
+	if !ok {
+		return "", false, err
+
+	}
+
+	_, err = Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "on", id)
+
+	if err != nil{
+		fmt.Println("3",err.Error())
+
+		return "", false, err
+	}
+	return id, ok, nil
 }
 
 // **** Logout ***
 func DeleteSession(id string) error {
-	_, err = Db.Exec(`DELETE FROM sessions WHERE session_id = ?`, id)
-	return err
+	// updateQuery := `UPDATE likes SET like_type = ? WHERE user_id = ? AND post_id IS ? AND comment_id IS ?`
+
+	_, err = Db.Exec("DELETE FROM sessions WHERE user_id = ?", id)
+
+	if err != nil {
+		fmt.Println("2",err.Error())
+
+		return err
+	}
+	_, err = Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "off", id)
+	if err != nil{
+		fmt.Println("3",err.Error())
+
+		return err
+	}
+
+	return nil
 }
 
 // **** getuser ***
@@ -111,7 +138,6 @@ func GetUser(r *http.Request) []string {
 	id := cookie.Value
 	var name string
 	var email string
-
 	query := "SELECT nickname, email FROM users WHERE user_id = ?"
 
 	err = Db.QueryRow(query, id).Scan(&name, &email)
@@ -121,3 +147,23 @@ func GetUser(r *http.Request) []string {
 	}
 	return []string{name, email}
 }
+
+func GetOnlineUsers() []string {
+	query := `
+	SELECT nickname FROM users  WHERE status = ?
+	`
+	rows, err := Db.Query(query, "on")
+	if err != nil {
+		return nil
+	}
+
+	defer rows.Close()
+	var users []string
+	for rows.Next() {
+		var user string
+		rows.Scan(&user)
+		users = append(users, user)
+	}
+	return users
+}
+
