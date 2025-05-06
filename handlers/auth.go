@@ -40,16 +40,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Set a session cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    id,
-		Expires: time.Now().Add(24*time.Hour),
-		Path:     "/",
+		Name:    "session_id",
+		Value:   id,
+		Expires: time.Now().Add(24 * time.Hour),
+		Path:    "/",
 	})
 
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Login successful",
 	})
-
 
 }
 
@@ -94,43 +93,39 @@ func Register(w http.ResponseWriter, r *http.Request) {
 			"type": err.Error(),
 		}
 
-		
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    id,
-		Expires:  expiration,
-		Path:     "/",
+		Name:    "session_id",
+		Value:   id,
+		Expires: expiration,
+		Path:    "/",
 	})
 
 	response := map[string]interface{}{
 		"type": "success",
-		"user" : RegisterData.Nickname,
+		"user": RegisterData.Nickname,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-	
 
 }
-
-
-
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/logout" {
 		return
 	}
-	
 
 	cookie, err := r.Cookie("session_id")
 	if err == nil && cookie.Value != "" {
 		err := db.DeleteSession(cookie.Value)
 		if err != nil {
 			fmt.Printf("Error deleting session: %v", err)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode("error")
 		}
 	}
 
@@ -138,4 +133,3 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode("sucsess")
 }
-
