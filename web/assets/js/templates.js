@@ -13,12 +13,10 @@ export function feeds() {
   <!-- Main Content -->
   <div class="main">
     <!-- Left Sidebar: Online Users -->
-    <div class="section left">
+    <div class="section left" >
       <h3>Online Users</h3>
       <ul id="online-users">
-        <li>Alice</li>
-        <li>Bob</li>
-        <li>Charlie</li>
+        
       </ul>
     </div>
 
