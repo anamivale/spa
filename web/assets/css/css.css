@@ -286,6 +286,110 @@ button:hover {
   width: 10%;
   margin: 10px;
 }
+/* chat*/
+.message-area {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+}
+#messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.message {
+  max-width: 80%;
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  word-wrap: break-word;
+}
+
+.message-sent {
+  align-self: flex-end;
+  background-color: #3498db;
+  color: white;
+}
+
+.message-received {
+  align-self: flex-start;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.message-time {
+  font-size: 12px;
+  margin-top: 5px;
+  opacity: 0.7;
+}
+
+#message-input {
+  display: flex;
+  padding: 15px;
+  border-top: 1px solid #ddd;
+}
+
+#message-text {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  resize: none;
+  height: 60px;
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+#send-button {
+  width: auto;
+}
+
+.unread-badge {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+#notification-count {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background-color: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  padding: 0 6px;
+  font-size: 12px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bell {
+  position: relative;
+  margin-left: auto;
+  margin-right: 20px;
+  cursor: pointer;
+}
+
+.bell i {
+  font-size: 24px;
+}
+.hidden {
+  display: none !important;
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {

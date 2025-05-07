@@ -1,3 +1,4 @@
+import { renderUsers } from "./chat.js";
 import { Logout } from "./logout.js";
 import { createPost } from "./post.js";
 import { reactToPost } from "./reactions.js";
@@ -109,13 +110,15 @@ async function getPosts() {
         elementUi.appendChild(reactions);
         feedsUi.appendChild(elementUi);
       });
-    let   online_users = document.getElementById("online-users")
-      data.users.map(ele =>{
-        let online_user = document.createElement("li")
-        online_user.textContent = ele
-        online_users.appendChild(online_user)
+    // let   online_users = document.getElementById("online-users")
+    //   data.users.map(ele =>{
+    //     let online_user = document.createElement("li")
+    //     online_user.textContent = ele
+    //     online_users.appendChild(online_user)
         
-      })
+    //   })
+
+    renderUsers(data.users)
 
       let name = document.getElementById("user_name");
       let email = document.getElementById("user_email");

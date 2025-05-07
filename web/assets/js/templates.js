@@ -5,7 +5,7 @@ export function feeds() {
   <div class="navbar">
     <h1>Forum</h1>
     <div class="actions">
-      <span class="bell">🔔</span>
+      <span class="bell">🔔 <span id="notification-count" class="hidden">0</span></span>
       <button id="logout">Logout</button>
     </div>
   </div>
@@ -119,4 +119,18 @@ export function createPostForm() {
     <button type="submit" id = "create" >Create Post</button>
   </div>
 </div>`
+}
+
+
+export function messagesUi() {
+  return `
+   <div class="message-area" id= "sms">
+                    <div id="messages"></div>
+                    <div id="message-input" class="hidden">
+                        <textarea id="message-text" placeholder="Type your message..."></textarea>
+                        <button id="send-button" class="btn">Send</button>
+                    </div>
+                </div>
+  `
+  
 }
