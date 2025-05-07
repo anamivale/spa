@@ -21,5 +21,6 @@ func Init() {
 	CreatePostTable()
 	CommentsTable()
 	ReactionTable()
+	MessageTable()
 
 }
