@@ -90,7 +90,7 @@ func CheckCredentials(username, password string) (string, bool, error) {
 	if err != nil {
 		return "", false, err
 	}
-	ok :=  utils.CheckPasswordHash(password, hashed)
+	ok := utils.CheckPasswordHash(password, hashed)
 	if !ok {
 		return "", false, err
 
@@ -98,8 +98,8 @@ func CheckCredentials(username, password string) (string, bool, error) {
 
 	_, err = Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "on", id)
 
-	if err != nil{
-		fmt.Println("3",err.Error())
+	if err != nil {
+		fmt.Println("3", err.Error())
 
 		return "", false, err
 	}
@@ -113,13 +113,13 @@ func DeleteSession(id string) error {
 	_, err = Db.Exec("DELETE FROM sessions WHERE user_id = ?", id)
 
 	if err != nil {
-		fmt.Println("2",err.Error())
+		fmt.Println("2", err.Error())
 
 		return err
 	}
 	_, err = Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "off", id)
-	if err != nil{
-		fmt.Println("3",err.Error())
+	if err != nil {
+		fmt.Println("3", err.Error())
 
 		return err
 	}
@@ -148,9 +148,9 @@ func GetUser(r *http.Request) []string {
 	return []string{name, email}
 }
 
-func GetOnlineUsers() []string {
+func GetOnlineUsers(name string) []models.User {
 	query := `
-	SELECT nickname FROM users  WHERE status = ?
+	SELECT nickname, user_id FROM users  WHERE status = ?
 	`
 	rows, err := Db.Query(query, "on")
 	if err != nil {
@@ -158,12 +158,14 @@ func GetOnlineUsers() []string {
 	}
 
 	defer rows.Close()
-	var users []string
+	var users []models.User
 	for rows.Next() {
-		var user string
-		rows.Scan(&user)
+		var user models.User
+		rows.Scan(&user.Nickname, &user.Id)
+		if user.Nickname == name {
+			continue
+		}
 		users = append(users, user)
 	}
 	return users
 }
-
