@@ -69,7 +69,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		// Save message to database
 		result, err := db.Db.Exec(
 			"INSERT INTO messages (sender_id, receiver_id, content, timestamp, read) VALUES (?, ?, ?, ?, ?)",
-			msg.SenderID, msg.ReceiverID, msg.Content, msg.Timestamp.Format("2006-01-02 15:04:05"), msg.Read,
+			msg.SenderID, msg.ReceiverID, msg.Content, time.Now(), msg.Read,
 		)
 		if err != nil {
 			log.Println("Error saving message:", err)
@@ -148,12 +148,12 @@ func HandleMessage(w http.ResponseWriter, r *http.Request) {
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		var timestampStr string
-		if err := rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &timestampStr, &msg.Read); err != nil {
+		// var timestampStr string
+		if err := rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.Timestamp, &msg.Read); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		msg.Timestamp, _ = time.Parse("2006-01-02 15:04:05", timestampStr)
+		// msg.Timestamp, _ = time.Parse("2006-01-02 15:04:05", timestampStr)
 		messages = append(messages, msg)
 	}
 
