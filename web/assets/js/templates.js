@@ -4,6 +4,7 @@ export function feeds() {
   <!-- Navbar -->
   <div class="navbar">
     <h1>Forum</h1>
+    <div id ="home">🏠 </div>
     <div class="actions">
       <span class="bell">🔔 <span id="notification-count" class="hidden">0</span></span>
       <button id="logout">Logout</button>

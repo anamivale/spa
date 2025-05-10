@@ -3,13 +3,12 @@ package models
 import "time"
 
 type Comment struct {
-	CommentID    string    `db:"comment_id"`
-	PostID       string    `db:"post_id"`
-	UserID       string    `db:"user_id"`
-	Content      string    `db:"content"`
-	Username     string    `db:"user_name"`
-	CreatedAt    string    `db:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at"`
+	CommentID    string
+	PostID       string `json:"post_id"`
+	UserID       string
+	Content      string `json:"content"`
+	Username     string
+	CreatedAt    time.Time
 	LikeCount    int
 	DislikeCount int
 }

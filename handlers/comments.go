@@ -22,6 +22,9 @@ func HandleCreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comment.CommentID = utils.GenerateUUid()
+	user := db.GetUser(r)
+	comment.UserID = user[2]
+	comment.Username = user[0]
 
 	err = db.InsertComment(comment)
 	if err != nil {
@@ -30,27 +33,6 @@ func HandleCreateComment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(map[string]string{
-		"message": "comment added",
+		"message": "success",
 	})
-}
-
-func HandleGetComments(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Only GET allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	postID := r.URL.Query().Get("post_id")
-	if postID == "" {
-		http.Error(w, "Missing post_id", http.StatusBadRequest)
-		return
-	}
-
-	comments, err := db.FetchComments(postID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	json.NewEncoder(w).Encode(comments)
 }

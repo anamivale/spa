@@ -390,6 +390,13 @@ button:hover {
   display: none !important;
 }
 
+#home{
+  font-size: 2rem;
+  cursor:pointer;
+}
+.close {
+  display: none;
+}
 
 /* Responsive */
 @media (max-width: 768px) {

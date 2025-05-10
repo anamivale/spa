@@ -14,14 +14,15 @@ func InsertComment(comment models.Comment) error {
 }
 
 func FetchComments(postID string) ([]models.Comment, error) {
-	query := `
-		SELECT c.comment_id, c.post_id, c.user_id, c.content, u.username, c.created_at
-		FROM comments c
-		JOIN users u ON c.user_id = u.user_id
-		WHERE c.post_id = ?
-		ORDER BY c.created_at ASC
-	`
-	rows, err := Db.Query(query, postID)
+	commentQuery := `
+			SELECT c.comment_id, c.post_id, c.content, u.nickname, u.user_id, c.created_at,
+				(SELECT COUNT(*) FROM likes WHERE comment_id = c.comment_id AND like_type = 'like') AS like_count,
+				(SELECT COUNT(*) FROM likes WHERE comment_id = c.comment_id AND like_type = 'dislike') AS dislike_count
+			FROM comments c
+			JOIN users u ON c.user_id = u.user_id
+			WHERE c.post_id = ?
+			ORDER BY c.created_at ASC`
+	rows, err := Db.Query(commentQuery, postID)
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +31,7 @@ func FetchComments(postID string) ([]models.Comment, error) {
 	var comments []models.Comment
 	for rows.Next() {
 		var c models.Comment
-		err := rows.Scan(&c.CommentID, &c.PostID, &c.UserID, &c.Content, &c.Username, &c.CreatedAt)
+		err := rows.Scan(&c.CommentID, &c.PostID, &c.Content, &c.Username, &c.UserID, &c.CreatedAt,&c.LikeCount, &c.DislikeCount)
 		if err != nil {
 			return nil, err
 		}

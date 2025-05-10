@@ -1,4 +1,5 @@
 import { renderUsers } from "./chat.js";
+import { createComment } from "./comments.js";
 import { Logout } from "./logout.js";
 import { createPost } from "./post.js";
 import { reactToPost } from "./reactions.js";
@@ -13,6 +14,10 @@ export function Feeds() {
     Logout();
   });
 
+  document.getElementById("home").addEventListener("click", () => {
+    Feeds()
+  })
+
   let Createpost = document.getElementById("createpost");
 
   Createpost.addEventListener("click", () => {
@@ -26,6 +31,8 @@ export function Feeds() {
       createPost();
     });
   });
+
+
 }
 
 async function getPosts() {
@@ -43,6 +50,7 @@ async function getPosts() {
         feedsUi.appendChild(elementUi);
         return;
       }
+      
 
       data.response.forEach((element) => {
         let elementUi = document.createElement("div");
@@ -60,7 +68,7 @@ async function getPosts() {
           .replaceAll('"', "");
         let timeUi = document.createElement("p");
         timeUi.textContent =
-          " Categories: " + cat + " | Created " + element.Time;
+          "Posted by: "+element.Username+"| Categories:" + cat + " | Created " + element.Time;
 
         let img = document.createElement("img");
         img.src = element.Imgurl;
@@ -74,13 +82,14 @@ async function getPosts() {
         let dislikes = document.createElement("button");
         let comment = document.createElement("button");
 
+
         reactions.appendChild(likes);
         reactions.appendChild(dislikes);
         reactions.appendChild(comment);
 
         likes.textContent = `likes: ${element.LikeCount}`;
         dislikes.textContent = `dislikes: ${element.DislikeCount}`;
-        comment.textContent = "comments: 0";
+        comment.textContent = `comments: ${element.CommentCount}`;
         const sessionId = getCookie("session_id");
 
         likes.addEventListener("click", async () => {
@@ -100,25 +109,68 @@ async function getPosts() {
         });
 
         elementUi.appendChild(titleUi);
-        elementUi.appendChild(contentUi);
         elementUi.appendChild(timeUi);
+
+        elementUi.appendChild(contentUi);
 
         if (element.Imgurl !== "") {
           elementUi.appendChild(img);
         }
 
         elementUi.appendChild(reactions);
+        comment.addEventListener("click", () => {
+          let existingCommentSection = elementUi.querySelector(".comment-section");
+
+          if (existingCommentSection) {
+            existingCommentSection.remove();
+          } else {
+            let commentSection = document.createElement("div");
+            commentSection.classList.add("comment-section");
+
+            let h1 = document.createElement("h1");
+            h1.textContent = "Add a comment";
+            commentSection.appendChild(h1);
+
+            //form
+            let commentForm = document.createElement("div");
+            let textarea = document.createElement("textarea");
+            textarea.id = "comment_content"
+            let submitButton = document.createElement("button");
+            submitButton.textContent = "comment"
+            commentForm.appendChild(textarea)
+            commentForm.appendChild(submitButton)
+            commentSection.appendChild(commentForm);
+
+            submitButton.addEventListener("click", () =>{
+              createComment(element.PostID)
+            })
+
+            //comments 
+            element.Comments?.forEach(el =>{
+              let comments = document.createElement("div")
+              let uname = document.createElement("p")
+              uname.textContent = `${ el.Username }|${ el.CreatedAt }`
+              let content = document.createElement("p")
+              content.textContent = el.content
+              
+              comments.appendChild(uname)
+              comments.appendChild(content)
+              commentSection.appendChild(comments)
+
+
+
+            })
+            elementUi.appendChild(commentSection);
+          }
+        });
+
+       
+
         feedsUi.appendChild(elementUi);
       });
-    // let   online_users = document.getElementById("online-users")
-    //   data.users.map(ele =>{
-    //     let online_user = document.createElement("li")
-    //     online_user.textContent = ele
-    //     online_users.appendChild(online_user)
-        
-    //   })
 
-    renderUsers(data.users)
+
+      renderUsers(data.users)
 
       let name = document.getElementById("user_name");
       let email = document.getElementById("user_email");
@@ -126,7 +178,7 @@ async function getPosts() {
       email.textContent = data.user[1];
     }
   } catch (err) {
-    console.error("Fetch error:", err);
+    console.error("Fetch error:", err.message);
   }
 }
 

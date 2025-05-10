@@ -40,6 +40,8 @@ func HandleCreatePost(w http.ResponseWriter, r *http.Request) {
 		data.Imgurl = "web/assets/uploads/" + data.Imgurl
 
 	}
+user := db.GetUser(r)
+data.UserID = user[2]
 
 
 	err = db.InsertPost(data)

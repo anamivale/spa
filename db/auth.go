@@ -145,7 +145,18 @@ func GetUser(r *http.Request) []string {
 		fmt.Println(err.Error())
 		return nil
 	}
-	return []string{name, email}
+	return []string{name, email, id}
+}
+func GetPostUser(id string) string {
+	var name string
+	query := "SELECT nickname FROM users WHERE user_id = ?"
+
+	err = Db.QueryRow(query, id).Scan(&name)
+	if err != nil {
+		fmt.Println("2",err.Error())
+		return ""
+	}
+	return name
 }
 
 func GetOnlineUsers(name string) []models.User {

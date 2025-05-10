@@ -8,7 +8,7 @@ import (
 )
 
 func GetPosts() ([]models.PostResponse, error) {
-	query := "SELECT post_id, title, content, categories, created_at, imgurl FROM posts"
+	query := "SELECT post_id,user_id,  title, content, categories, created_at, imgurl FROM posts GROUP BY post_id ORDER BY created_at DESC"
 	var output []models.PostResponse
 
 	rows, err := Db.Query(query)
@@ -18,7 +18,15 @@ func GetPosts() ([]models.PostResponse, error) {
 
 	for rows.Next() {
 		var post models.PostResponse
-		err := rows.Scan(&post.PostID, &post.Title, &post.Content, &post.Categories, &post.CreatedAt, &post.Imgurl)
+		err := rows.Scan(&post.PostID, &post.UserID, &post.Title, &post.Content, &post.Categories, &post.CreatedAt, &post.Imgurl)
+		if err != nil {
+			return nil, err
+		}
+		if post.UserID != "" {
+			post.Username = GetPostUser(post.UserID)
+		}
+		post.Comments, err = FetchComments(post.PostID)
+		post.CommentCount = len(post.Comments)
 		if err != nil {
 			return nil, err
 		}

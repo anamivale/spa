@@ -20,7 +20,6 @@ func main() {
 	http.HandleFunc("/like", handlers.LikeHandler)
 	http.HandleFunc("/login", handlers.Login)
 	http.HandleFunc("/comment", handlers.HandleCreateComment)
-	http.HandleFunc("/comments", handlers.HandleGetComments)
 	http.HandleFunc("/api/messages", handlers.HandleMessage)
 	http.HandleFunc("/api/unread", handlers.HandleUnread)
 	http.HandleFunc("/api/mark-read", handlers.HandleMarkRead)
