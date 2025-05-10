@@ -2,7 +2,7 @@ import { renderUsers } from "./chat.js";
 import { createComment } from "./comments.js";
 import { Logout } from "./logout.js";
 import { createPost } from "./post.js";
-import { reactToPost } from "./reactions.js";
+import { reactToComment, reactToPost } from "./reactions.js";
 import { createPostForm, feeds } from "./templates.js";
 
 export function Feeds() {
@@ -155,6 +155,33 @@ async function getPosts() {
               
               comments.appendChild(uname)
               comments.appendChild(content)
+              let reaction = document.createElement("div");
+              reaction.className = "reactions";
+
+              let likes = document.createElement("button");
+              let dislikes = document.createElement("button");
+      
+      
+              reaction.appendChild(likes);
+              reaction.appendChild(dislikes);
+      
+              likes.textContent = `likes: ${el.LikeCount}`;
+              dislikes.textContent = `dislikes: ${el.DislikeCount}`;
+
+              likes.addEventListener("click", async () => {
+                const creaction = await reactToComment(sessionId, el.CommentID, "like");
+                
+                likes.textContent = `likes: ${creaction.likes}`;
+                dislikes.textContent = `dislikes: ${creaction.dislikes}`;
+              });
+      
+              dislikes.addEventListener("click", async () => {
+                const creaction = await reactToComment(sessionId, el.CommentID, "dislike");
+                likes.textContent = `likes: ${creaction.likes}`;
+                dislikes.textContent = `dislikes: ${creaction.dislikes}`;
+              });
+
+              comments.appendChild(reaction)
               commentSection.appendChild(comments)
 
 

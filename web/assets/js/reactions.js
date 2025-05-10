@@ -26,4 +26,37 @@ export async function reactToPost(userId, postId, likeType) {
       };
     }
   }
+
+
+  export async function reactToComment(userId, commentId, likeType) {
+   
+  
+    try {
+      const response = await fetch("/like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: userId,
+          comment_id: commentId,
+          like_type: likeType,
+        }),
+      });
+  
+      const data = await response.json();
+
+      return {
+        likes : data.likes,
+        dislikes: data.dislikes,
+
+      }
+  
+      
+    } catch (error) {
+      console.error("Error:", error);
+      return {
+        likes: 0,
+        dislikes: 0,
+      };
+    }
+  }
   
