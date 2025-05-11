@@ -105,10 +105,15 @@ export function Login() {
 
 
 
+
 export function loadAuthView(error) {
   document.getElementById("app").innerHTML = authTemplate();
   document.getElementById("errors").textContent = error;
-  document.getElementById("signup").addEventListener("click", () => {
-    Signup();
-  });
+
+  document.getElementById("signup")
+    .addEventListener("click", () => Signup());
+
+  document.getElementById("login")
+    .addEventListener("click", () => Login());
 }
+
