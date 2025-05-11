@@ -2,9 +2,9 @@ import { messagesUi } from "./templates.js";
 
 // Global variables
 let currentUser = null;
-let currentChatUser = null;
+export let currentChatUser = null;
 let socket = null;
-let unreadCounts = {};
+export let unreadCounts = {};
 
 // Initialize the application
 document.addEventListener("DOMContentLoaded", () => {
@@ -15,14 +15,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   showChatInterface();
 
-  setupEventListeners();
 
   connectWebSocket();
   fetchUnreadCounts();
+
+  setupEventListeners();
+
 })
 
 // Set up all event listeners
-function setupEventListeners() {
+export function setupEventListeners() {
   // Re-fetch DOM elements now that they exist
   const notificationCount = document.getElementById("notification-count");
   const notificationBell = document.querySelector(".bell");
@@ -50,7 +52,7 @@ function setupEventListeners() {
 }
 
 // Show chat interface
-function showChatInterface() {
+export function showChatInterface() {
   let feeds = document.getElementById("feeds");
   if (feeds) {
     feeds.innerHTML = messagesUi();
@@ -58,57 +60,9 @@ function showChatInterface() {
 }
 
 // Render users list
-export function renderUsers(users) {
-  if (!users || !Array.isArray(users)) {
-    console.error("No users array provided to renderUsers");
-    return;
-  }
-
-  let online_users = document.getElementById("online-users");
-  if (!online_users) {
-    console.error("online-users element not found");
-    return;
-  }
-
-  // Clear existing users to prevent duplicates
-  online_users.innerHTML = '';
-
-  users.forEach((user) => {
-    const li = document.createElement("li");
-    li.textContent = user.Nickname;
-    li.dataset.userId = user.Id;
-
-    // Add unread badge if there are unread messages
-    if (unreadCounts[user.Id] && unreadCounts[user.Id] > 0) {
-      const badge = document.createElement("span");
-      badge.className = "unread-badge";
-      badge.textContent = unreadCounts[user.Id];
-      li.appendChild(badge);
-    }
-
-    li.addEventListener("click", () => {
-      // First establish connection and create the UI
-      showChatInterface();
-
-      setupEventListeners();
-
-      // Then select the user immediately
-      selectUser(user);
-      
-      // After selecting user, fetch unread counts
-      fetchUnreadCounts();
-    });
-
-    if (currentChatUser && currentChatUser.Id === user.Id) {
-      li.classList.add("active");
-    }
-
-    online_users.appendChild(li);
-  });
-}
 
 // Select a user to chat with
-function selectUser(user) {
+export function selectUser(user) {
   currentChatUser = user;
 
   // Safely get DOM elements
@@ -144,7 +98,7 @@ function selectUser(user) {
 }
 
 // Connect WebSocket
-function connectWebSocket() {
+export function connectWebSocket() {
   if (!currentUser || !currentUser.id) {
     console.error("Cannot connect WebSocket: currentUser.id is missing");
     return;
@@ -244,7 +198,7 @@ function sendMessage() {
 }
 
 // Fetch messages between current user and selected user
-async function fetchMessages(otherUserId) {
+export  async function fetchMessages(otherUserId) {
   if (!currentUser || !currentUser.id) {
     console.error("Cannot fetch messages: currentUser.id is missing");
     return;
@@ -320,7 +274,7 @@ function formatTime(date) {
 }
 
 // Fetch unread message counts
-async function fetchUnreadCounts() {
+export async function fetchUnreadCounts() {
   if (!currentUser || !currentUser.id) {
     console.error("Cannot fetch unread counts: currentUser.id is missing");
     return;
@@ -410,3 +364,5 @@ function getSessionIdFromCookies() {
   const match = document.cookie.match(/session_id="?([a-f0-9\-]+)"?/i);
   return match ? match[1] : null;
 }
+
+

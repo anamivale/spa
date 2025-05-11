@@ -1,4 +1,4 @@
-import { renderUsers } from "./chat.js";
+import { currentChatUser, fetchMessages, fetchUnreadCounts, selectUser, setupEventListeners, showChatInterface, unreadCounts } from "./chat.js";
 import { createComment } from "./comments.js";
 import { Logout } from "./logout.js";
 import { createPost } from "./post.js";
@@ -197,8 +197,53 @@ async function getPosts() {
       });
 
 
-      renderUsers(data.users)
 
+       
+      
+        let online_users = document.getElementById("online-users");
+        if (!online_users) {
+          console.error("online-users element not found");
+          return;
+        }
+      
+        // Clear existing users to prevent duplicates
+        online_users.innerHTML = '';
+      
+        data.users.forEach((user) => {
+          const li = document.createElement("li");
+          li.textContent = user.Nickname;
+          li.dataset.userId = user.Id;
+      
+          // Add unread badge if there are unread messages
+          if (unreadCounts[user.Id] && unreadCounts[user.Id] > 0) {
+            const badge = document.createElement("span");
+            badge.className = "unread-badge";
+            badge.textContent = unreadCounts[user.Id];
+            li.appendChild(badge);
+          }
+      
+          li.addEventListener("click", () => {
+            // First establish connection and create the UI
+            showChatInterface();
+      
+            setupEventListeners();
+      
+            // Then select the user immediately
+            selectUser(user);
+            
+            // After selecting user, fetch unread counts
+            fetchUnreadCounts();
+            fetchMessages(user.Id)
+          });
+      
+          if (currentChatUser && currentChatUser.Id === user.Id) {
+            li.classList.add("active");
+          }
+      
+          online_users.appendChild(li);
+        });
+      
+      
       let name = document.getElementById("user_name");
       let email = document.getElementById("user_email");
       name.textContent = data.user[0];
