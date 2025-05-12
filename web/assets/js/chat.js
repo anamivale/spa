@@ -7,21 +7,20 @@ let socket = null;
 export let unreadCounts = {};
 
 // Initialize the application
-document.addEventListener("DOMContentLoaded", () => {
+// Remove the DOMContentLoaded listener and replace with this:
+export function initChat() {
   const sessionId = getSessionIdFromCookies();
-  currentUser = {
-    "id": sessionId
-  }
+  if (!sessionId) return;
 
-  showChatInterface();
+  currentUser = { id: sessionId };
+  
+  
 
-
+  // showChatInterface();
   connectWebSocket();
   fetchUnreadCounts();
-
   setupEventListeners();
-
-})
+}
 
 // Set up all event listeners
 export function setupEventListeners() {
@@ -104,9 +103,9 @@ export function connectWebSocket() {
     return;
   }
 
-  if (socket && socket.readyState !== WebSocket.CLOSED) {
-    socket.close();
-  }
+  // if (socket && socket.readyState !== WebSocket.CLOSED) {
+  //   socket.close();
+  // }
 
   socket = new WebSocket(
     `ws://${window.location.host}/ws?user_id=${currentUser.id}`

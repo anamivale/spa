@@ -1,4 +1,4 @@
-import { currentChatUser, fetchMessages, fetchUnreadCounts, selectUser, setupEventListeners, showChatInterface, unreadCounts } from "./chat.js";
+import { currentChatUser, fetchMessages, fetchUnreadCounts, initChat, selectUser, setupEventListeners, showChatInterface, unreadCounts } from "./chat.js";
 import { createComment } from "./comments.js";
 import { Logout } from "./logout.js";
 import { createPost } from "./post.js";
@@ -9,6 +9,7 @@ export function Feeds() {
   let body = document.getElementById("app");
   body.innerHTML = feeds();
   getPosts();
+  initChat()
 
   document.getElementById("logout").addEventListener("click", () => {
     Logout();
