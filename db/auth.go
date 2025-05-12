@@ -153,7 +153,7 @@ func GetPostUser(id string) string {
 
 	err = Db.QueryRow(query, id).Scan(&name)
 	if err != nil {
-		fmt.Println("2",err.Error())
+		fmt.Println("2", err.Error())
 		return ""
 	}
 	return name
@@ -161,9 +161,9 @@ func GetPostUser(id string) string {
 
 func GetOnlineUsers(name string) []models.User {
 	query := `
-	SELECT nickname, user_id FROM users  WHERE status = ?
+	SELECT nickname, user_id FROM users 
 	`
-	rows, err := Db.Query(query, "on")
+	rows, err := Db.Query(query)
 	if err != nil {
 		return nil
 	}

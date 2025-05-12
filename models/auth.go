@@ -17,5 +17,6 @@ type Signup struct {
 
 type User struct {
 	Nickname string
-	Id string
+	Id       string
+	Status   string
 }
