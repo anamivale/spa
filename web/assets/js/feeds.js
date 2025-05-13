@@ -53,7 +53,7 @@ async function getPosts() {
       }
       
 
-      data.response.forEach((element) => {
+      data.response?.forEach((element) => {
         let elementUi = document.createElement("div");
         elementUi.className = "post";
 
@@ -210,7 +210,7 @@ async function getPosts() {
         // Clear existing users to prevent duplicates
         online_users.innerHTML = '';
       
-        data.users.forEach((user) => {
+        data.users?.forEach((user) => {
           const li = document.createElement("li");
           li.textContent = user.Nickname;
           li.dataset.userId = user.Id;

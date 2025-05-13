@@ -3,8 +3,13 @@ import { messagesUi } from "./templates.js";
 // Global variables
 let currentUser = null;
 export let currentChatUser = null;
-let socket = null;
+export let socket = null;
 export let unreadCounts = {};
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+let reconnectTimeout = null;
+let isManualClose = false;
+
 
 // Initialize the application
 // Remove the DOMContentLoaded listener and replace with this:
@@ -95,24 +100,30 @@ export function selectUser(user) {
     console.error("Messages container not found");
   }
 }
-
-// Connect WebSocket
 export function connectWebSocket() {
   if (!currentUser || !currentUser.id) {
     console.error("Cannot connect WebSocket: currentUser.id is missing");
     return;
   }
 
-  // if (socket && socket.readyState !== WebSocket.CLOSED) {
-  //   socket.close();
-  // }
+  // Clear any pending reconnection attempt
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
 
-  socket = new WebSocket(
-    `ws://${window.location.host}/ws?user_id=${currentUser.id}`
-  );
+  // Close existing connection if any
+  if (socket) {
+    isManualClose = true; // Mark as intentional close
+    socket.close();
+    socket = null;
+  }
+
+  socket = new WebSocket(`ws://${window.location.host}/ws?user_id=${currentUser.id}`);
 
   socket.onopen = () => {
     console.log("WebSocket connection established");
+    reconnectAttempts = 0; // Reset on successful connection
   };
 
   socket.onmessage = (event) => {
@@ -120,21 +131,49 @@ export function connectWebSocket() {
     handleNewMessage(message);
   };
 
-  socket.onclose = () => {
-    console.log("WebSocket connection closed");
-    // Attempt to reconnect after a delay
-    setTimeout(() => {
-      if (currentUser) {
+  socket.onclose = (event) => {
+    console.log("WebSocket connection closed", event.code, event.reason);
+    
+    // Don't reconnect if we manually closed or user logged out
+    if (isManualClose || !currentUser) {
+      isManualClose = false;
+      return;
+    }
+
+    // Exponential backoff for reconnection
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+    reconnectAttempts++;
+    
+    if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
+      console.log(`Attempting reconnect in ${delay}ms (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
+      reconnectTimeout = setTimeout(() => {
         connectWebSocket();
-      }
-    }, 3000);
+      }, delay);
+    } else {
+      console.error("Max reconnection attempts reached");
+    }
   };
 
   socket.onerror = (error) => {
     console.error("WebSocket error:", error);
+    // Errors will also trigger onclose, so we handle reconnection there
   };
 }
 
+// Add this cleanup function
+export function disconnectWebSocket() {
+  currentUser = null
+  isManualClose = true;
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
+  reconnectAttempts = 0;
+}
 // Handle new message
 function handleNewMessage(message) {
   // If message is for current chat, add it to the UI immediately
