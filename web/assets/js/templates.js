@@ -4,7 +4,21 @@ export function feeds() {
   <!-- Navbar -->
   <div class="navbar">
     <h1>Forum</h1>
-    <div id ="home">🏠 </div>
+    <div id ="nav-elements">
+    <div id ="home">🏠</div>
+    <div class="categories-dropdown">
+                    <button class="dropdown-button">Categories ▼</button>
+                    <div class="dropdown-content">
+                        <li>Health</li>
+                        <li>Technology</li>
+                        <li>Education</li>
+                        <li>Entertainment</li>
+                        <li>Travel</li>
+                        <li>All Categories</li>
+                    </div>
+                </div>
+
+    </div>
     <div class="actions">
       <span class="bell">🔔 <span id="notification-count" class="hidden">0</span></span>
       <button id="logout">Logout</button>
@@ -96,22 +110,36 @@ export function createPostForm() {
 
     <label for="category">Category:</label>
     <label>
-\      health
-      <input type="checkbox" name="category" value="health" />
+\      Health
+      <input type="checkbox" name="category" value="Health" />
 
     </label>
-        <br /><br />
+        <br />
 
     <label>
-      health
-            <input type="checkbox" name="category" value="health" />
+    Technology
+            <input type="checkbox" name="category" value="Technology" />
 
     </label>
-        <br /><br />
+        <br />
 
     <label>
-      health
-            <input type="checkbox" name="category" value="health" />
+    Education
+            <input type="checkbox" name="category" value="Education" />
+
+    </label>
+    <br />
+
+    <label>
+    Entertainment
+            <input type="checkbox" name="category" value="Entertainment" />
+
+    </label>
+    <br />
+
+    <label>
+    Travel
+            <input type="checkbox" name="category" value="Travel" />
 
     </label>
     <br /><br />
