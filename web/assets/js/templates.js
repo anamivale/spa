@@ -9,12 +9,12 @@ export function feeds() {
     <div class="categories-dropdown">
                     <button class="dropdown-button">Categories ▼</button>
                     <div class="dropdown-content">
-                        <li>Health</li>
-                        <li>Technology</li>
-                        <li>Education</li>
-                        <li>Entertainment</li>
-                        <li>Travel</li>
-                        <li>All Categories</li>
+                        <li class = "cat-el">Health</li>
+                        <li class = "cat-el">Technology</li>
+                        <li class = "cat-el">Education</li>
+                        <li class = "cat-el">Entertainment</li>
+                        <li class = "cat-el">Travel</li>
+                        <li class = "cat-el">All</li>
                     </div>
                 </div>
 
@@ -36,10 +36,9 @@ export function feeds() {
     </div>
 
     <!-- Center: Feeds -->
-    <div class="section center" id="feeds">
+    <div class="section center" id="feed-container">
       <button id = "createpost"> Create post </button>
-
-     
+      <div id = "feeds"> </div>     
     </div>
 
     <!-- Right Sidebar: Profile -->

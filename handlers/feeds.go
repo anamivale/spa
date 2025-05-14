@@ -10,8 +10,11 @@ import (
 
 func HandleGetPosts(w http.ResponseWriter, r *http.Request) {
 	user := db.GetUser(r)
+	cat := r.URL.Query().Get("cat")
 
-	posts, err := db.GetPosts()
+
+	posts, err := db.GetPosts(cat)
+
 	if err != nil {
 		fmt.Println(err.Error())
 		response := map[string]interface{}{

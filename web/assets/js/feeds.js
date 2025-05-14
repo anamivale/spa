@@ -8,7 +8,23 @@ import { createPostForm, feeds } from "./templates.js";
 export function Feeds() {
   let body = document.getElementById("app");
   body.innerHTML = feeds();
-  getPosts();
+  let url = "/feeds"
+  getPosts(url);
+
+
+  const categoriesSort = Array.from(document.querySelectorAll(".cat-el"))
+  categoriesSort.forEach(el => {
+    el.addEventListener("click", ()=>{
+      url = "/feeds?cat="+el.textContent.trim()
+      getPosts(url);
+
+      console.log(url);
+
+    })
+    
+  })
+  console.log(url);
+  
   initChat()
 
   document.getElementById("logout").addEventListener("click", () => {
@@ -36,14 +52,16 @@ export function Feeds() {
 
 }
 
-async function getPosts() {
+export async function getPosts(url) {
+  
   try {
-    const res = await fetch("/feeds");
+    const res = await fetch(url);
     const data = await res.json();
 
     if (data.type === "success") {
       let feedsUi = document.getElementById("feeds");
       feedsUi.className = "posts-container";
+      feedsUi.innerHTML = ""
 
       if (!data.response || data.response.length === 0) {
         let elementUi = document.createElement("div");

@@ -7,11 +7,20 @@ import (
 	"spa/utils"
 )
 
-func GetPosts() ([]models.PostResponse, error) {
-	query := "SELECT post_id,user_id,  title, content, categories, created_at, imgurl FROM posts GROUP BY post_id ORDER BY created_at DESC"
+func GetPosts(cat string) ([]models.PostResponse, error) {
+
+	query := `SELECT post_id, user_id, title, content, categories, created_at, imgurl 
+	FROM posts 
+	WHERE categories LIKE ?
+	ORDER BY created_at DESC`
+
+	if cat == "" || cat == "All" {
+		query = "SELECT post_id,user_id,  title, content, categories, created_at, imgurl FROM posts GROUP BY post_id ORDER BY created_at DESC"
+
+	}
 	var output []models.PostResponse
 
-	rows, err := Db.Query(query)
+	rows, err := Db.Query(query, "%"+cat+"%")
 	if err != nil {
 		return nil, err
 	}
@@ -22,9 +31,7 @@ func GetPosts() ([]models.PostResponse, error) {
 		if err != nil {
 			return nil, err
 		}
-		if post.UserID != "" {
-			post.Username = GetPostUser(post.UserID)
-		}
+		post.Username = GetPostUser(post.UserID)
 		post.Comments, err = FetchComments(post.PostID)
 		post.CommentCount = len(post.Comments)
 		if err != nil {

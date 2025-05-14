@@ -1,4 +1,4 @@
-import { Feeds } from "./feeds.js"
+import { Feeds, getPosts } from "./feeds.js"
 
 export function createPost() {
     let fileInput = document.getElementById("file")
@@ -69,11 +69,11 @@ function sendRequest(req) {
     .then(res => res.json())
     .then(data => {
         if (data.type == "success") {
-            Feeds()
+            getPosts("/feeds")
         }
-        alert(data.type)
     })
     .catch(err => {
         console.log(err.message);
     })
 }
+
