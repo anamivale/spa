@@ -31,7 +31,7 @@ body {
 }
 
 #label {
-  color: #fff;
+  color: #2c0333;
   font-size: 2.3em;
   justify-content: center;
   display: flex;
@@ -76,6 +76,7 @@ button:hover {
 }
 
 .login {
+  color: #000;
   height: 100%;
   background: #eee;
   border-radius: 60% / 10%;
@@ -84,6 +85,7 @@ button:hover {
 }
 
 .login label {
+  
   color: #573b8a;
   transform: scale(0.6);
 }
