@@ -9,9 +9,17 @@ import (
 )
 
 func HandleGetPosts(w http.ResponseWriter, r *http.Request) {
-	user := db.GetUser(r)
-	cat := r.URL.Query().Get("cat")
+	user, err := db.GetUser(r)
 
+	if err != nil {
+		response := map[string]interface{}{
+			"type": "error",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	cat := r.URL.Query().Get("cat")
 
 	posts, err := db.GetPosts(cat)
 
@@ -23,7 +31,7 @@ func HandleGetPosts(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	}
-	users := db.GetOnlineUsers(user[0])
+	users := db.GetOnlineUsers(user.Nickname)
 
 	response := map[string]interface{}{
 		"type":     "success",
