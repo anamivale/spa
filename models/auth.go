@@ -19,4 +19,5 @@ type User struct {
 	Nickname string
 	Id       string
 	Status   string
+	Email    string
 }
