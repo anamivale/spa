@@ -31,7 +31,7 @@ func createUserTable() {
 
 	_, err = Db.Exec(query)
 	if err != nil {
-		fmt.Println(2,err.Error())
+		fmt.Println(21,err.Error())
 	}
 }
 
@@ -128,26 +128,13 @@ func GetUser(r *http.Request) (*models.User, error) {
 		fmt.Println("Cookie not found:", err)
 		return nil, err
 	}
-	sessionID := cookie.Value
-	fmt.Println("Session ID from cookie:", sessionID)
+	userID := cookie.Value
 
-	// Step 2: Query the sessions table to get user_id using the session_id
-	var userID string
-	query := "SELECT user_id FROM sessions WHERE session_id = ?"
-	err = Db.QueryRow(query, sessionID).Scan(&userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			// Session not found
-			fmt.Println("Session not found for session_id:", sessionID)
-			return nil, fmt.Errorf("session not found")
-		}
-		fmt.Println("Error querying sessions table:", err)
-		return nil, err
-	}
+	
 
 	// Step 3: Query the users table to get user details using the user_id
 	var user models.User
-	query = "SELECT nickname, email FROM users WHERE user_id = ?"
+	query := "SELECT nickname, email FROM users WHERE user_id = ?"
 	err = Db.QueryRow(query, userID).Scan(&user.Nickname, &user.Email)
 	if err != nil {
 		if err == sql.ErrNoRows {
