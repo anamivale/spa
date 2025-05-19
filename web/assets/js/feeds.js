@@ -265,8 +265,8 @@ export async function getPosts(url) {
       
       let name = document.getElementById("user_name");
       let email = document.getElementById("user_email");
-      name.textContent = data.user[0];
-      email.textContent = data.user[1];
+      name.textContent = data.user.Nickname;
+      email.textContent = data.user.Email;
     }
   } catch (err) {
     console.error("Fetch error:", err.message);

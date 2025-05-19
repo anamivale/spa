@@ -27,6 +27,56 @@ var (
 	mutex = &sync.Mutex{}
 )
 
+// Send personalized online user list to a specific user
+func sendPersonalizedUsersList(userID string) {
+	mutex.Lock()
+	defer mutex.Unlock()
+
+	// Get connections for this user
+	connections, ok := clients[userID]
+	if !ok || len(connections) == 0 {
+		// User has no active connections
+		return
+	}
+
+	// Get personalized users list for this user
+	users, err := db.GetPersonalizedUsersList(userID)
+	if err != nil {
+		log.Printf("Error getting personalized users list for user %s: %v", userID, err)
+		return
+	}
+
+	// Create message with user list
+	msg := models.Message{
+		Type:  "online_users",
+		Users: users,
+	}
+
+	// Send to all connections for this user
+	for conn := range connections {
+		if err := conn.WriteJSON(msg); err != nil {
+			log.Printf("Error sending users list to user %s: %v", userID, err)
+			conn.Close()
+			delete(connections, conn)
+		}
+	}
+}
+
+// Broadcast personalized user lists to all connected users
+func broadcastAllUsersLists() {
+	mutex.Lock()
+	userIDs := make([]string, 0, len(clients))
+	for userID := range clients {
+		userIDs = append(userIDs, userID)
+	}
+	mutex.Unlock()
+
+	// Send personalized list to each user
+	for _, userID := range userIDs {
+		sendPersonalizedUsersList(userID)
+	}
+}
+
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -49,16 +99,44 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	clients[userIDStr][ws] = true
 	mutex.Unlock()
 
+	// Send personalized users list to the newly connected user
+	go sendPersonalizedUsersList(userIDStr)
+	
+	// Also broadcast to everyone since someone new is online
+	go broadcastAllUsersLists()
+
+	// Set up cleanup when connection closes
+	defer func() {
+		mutex.Lock()
+		delete(clients[userIDStr], ws)
+		if len(clients[userIDStr]) == 0 {
+			delete(clients, userIDStr)
+			
+			// Update user status to offline in the database
+			_, err := db.Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "off", userIDStr)
+			if err != nil {
+				log.Printf("Error updating user status to offline: %v", err)
+			}
+		}
+		mutex.Unlock()
+		
+		// Broadcast to everyone that a user went offline
+		go broadcastAllUsersLists()
+	}()
+
 	// Handle incoming messages
 	for {
 		var msg models.Message
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			log.Printf("error: %v", err)
-			mutex.Lock()
-			delete(clients[userIDStr], ws)
-			mutex.Unlock()
 			break
+		}
+
+		// Handle request for online users
+		if msg.Type == "get_online_users" {
+			go sendPersonalizedUsersList(userIDStr)
+			continue
 		}
 
 		// Set sender ID from query parameter
@@ -86,6 +164,22 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 		// Broadcast message
 		broadcast <- msg
+		
+		// After sending a message, update user lists as interaction patterns have changed
+		go broadcastAllUsersLists()
+	}
+}
+
+// Periodically broadcast user lists to all clients
+func StartPersonalizedUsersBroadcaster() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			broadcastAllUsersLists()
+		}
 	}
 }
 
@@ -148,12 +242,10 @@ func HandleMessage(w http.ResponseWriter, r *http.Request) {
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		// var timestampStr string
 		if err := rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.Timestamp, &msg.Read); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		// msg.Timestamp, _ = time.Parse("2006-01-02 15:04:05", timestampStr)
 		messages = append(messages, msg)
 	}
 

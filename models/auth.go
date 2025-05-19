@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Login struct {
 	Username string
 	Password string
@@ -16,8 +18,9 @@ type Signup struct {
 }
 
 type User struct {
-	Nickname string
-	Id       string
-	Status   string
-	Email    string
+	Nickname        string
+	Id              string
+	Status          string
+	Email           string
+	LastInteraction time.Time `json:"LastInteraction,omitempty"`
 }

@@ -138,7 +138,7 @@ export  function Login() {
     .then((res) => {
       const result =  res.json()
       if (!res.ok) throw new Error("Login failed");
-      return res.json();
+      return result;
     })
     .then((data) => {
       console.log("Login successful:", data);

@@ -17,4 +17,6 @@ type Message struct {
 	Content    string    `json:"content"`
 	Timestamp  time.Time `json:"timestamp"`
 	Read       bool      `json:"read"`
+	Type       string    `json:"type,omitempty"` // Message type (regular, online_users, etc.)
+	Users      []User    `json:"users,omitempty"`
 }

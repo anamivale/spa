@@ -17,7 +17,6 @@ type LoginRequest struct {
 
 //Login function
 func Login(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("hello")
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
 		return
@@ -56,10 +55,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// Set a session cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
-		Value:    sessionID,
+		Value:    id,
 		Expires:  expiration,
 		Path:     "/",
-		HttpOnly: true,
 	})
 
 	json.NewEncoder(w).Encode(map[string]string{
@@ -117,10 +115,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	// Set the session cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_id",
-		Value:    sessionID,
+		Value:    id,
 		Expires:  expiration,
 		Path:     "/",
-		HttpOnly: true,
 	})
 
 	response := map[string]interface{}{
@@ -150,13 +147,12 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		
 		// Get user ID from header (set by auth middleware if used)
-		userID := r.Header.Get("X-User-ID")
-		if userID != "" {
-			_, err = db.Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "off", userID)
+		
+			_, err = db.Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "off", cookie.Value)
 			if err != nil {
 				fmt.Println("Error updating user status:", err)
 			}
-		}
+		
 	}
 
 	// Clear the cookie
@@ -165,7 +161,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 		Value:    "",
 		Expires:  time.Now().Add(-time.Hour),
 		Path:     "/",
-		HttpOnly: true,
 	})
 
 	w.Header().Set("Content-Type", "application/json")

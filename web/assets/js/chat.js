@@ -10,18 +10,13 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 let reconnectTimeout = null;
 let isManualClose = false;
 
-
 // Initialize the application
-// Remove the DOMContentLoaded listener and replace with this:
 export function initChat() {
   const sessionId = getSessionIdFromCookies();
   if (!sessionId) return;
 
   currentUser = { id: sessionId };
   
-  
-
-  // showChatInterface();
   connectWebSocket();
   fetchUnreadCounts();
   setupEventListeners();
@@ -63,8 +58,6 @@ export function showChatInterface() {
   }
 }
 
-// Render users list
-
 // Select a user to chat with
 export function selectUser(user) {
   currentChatUser = user;
@@ -100,6 +93,7 @@ export function selectUser(user) {
     console.error("Messages container not found");
   }
 }
+
 export function connectWebSocket() {
   if (!currentUser || !currentUser.id) {
     console.error("Cannot connect WebSocket: currentUser.id is missing");
@@ -124,6 +118,9 @@ export function connectWebSocket() {
   socket.onopen = () => {
     console.log("WebSocket connection established");
     reconnectAttempts = 0; // Reset on successful connection
+    
+    // Request online users immediately after connection is established
+    requestOnlineUsers();
   };
 
   socket.onmessage = (event) => {
@@ -160,9 +157,16 @@ export function connectWebSocket() {
   };
 }
 
+// Function to request online users list
+function requestOnlineUsers() {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify({ type: "get_online_users" }));
+  }
+}
+
 // Add this cleanup function
 export function disconnectWebSocket() {
-  currentUser = null
+  currentUser = null;
   isManualClose = true;
   if (socket) {
     socket.close();
@@ -174,30 +178,89 @@ export function disconnectWebSocket() {
   }
   reconnectAttempts = 0;
 }
-// Handle new message
-function handleNewMessage(message) {
-  // If message is for current chat, add it to the UI immediately
-  if (
-    currentChatUser &&
-    ((message.sender_id == currentChatUser.Id &&
-      message.receiver_id == currentUser.id) ||
-      (message.sender_id == currentUser.id &&
-        message.receiver_id == currentChatUser.Id))
-  ) {
-    // Add message to UI immediately - removed the setTimeout delay
-    addMessageToUI(message);
 
-    // If we received a message, mark it as read
-    if (
-      message.sender_id == currentChatUser.Id &&
-      message.receiver_id == currentUser.id
-    ) {
-      markMessagesAsRead(currentChatUser.Id);
+// Update online users list with the received data
+function updateOnlineUsersList(users) {
+    const onlineUsersContainer = document.getElementById("online-users");
+    if (!onlineUsersContainer) return;
+
+    onlineUsersContainer.innerHTML = '';
+
+    if (!users || users.length === 0) {
+        // Handle no users case
+        const li = document.createElement("li");
+        li.textContent = "No users online";
+        li.className = "no-users";
+        onlineUsersContainer.appendChild(li);
+        return;
     }
-  }
-  else if (message.receiver_id == currentUser.id) {
-    fetchUnreadCounts();
-  }
+
+    users.forEach(user => {
+        const li = document.createElement("li");
+        li.textContent = user.Nickname;
+        li.dataset.userId = user.Id;
+
+        // Add status indicator
+        const statusDot = document.createElement("span");
+        statusDot.className = `status-dot ${user.Status === "on" ? "online" : "offline"}`;
+        li.appendChild(statusDot);
+
+        // Add unread badge if needed
+        if (unreadCounts[user.Id] && unreadCounts[user.Id] > 0) {
+            const badge = document.createElement("span");
+            badge.className = "unread-badge";
+            badge.textContent = unreadCounts[user.Id];
+            li.appendChild(badge);
+        }
+
+        li.addEventListener("click", () => {
+            showChatInterface();
+            setupEventListeners();
+            selectUser(user);
+            fetchUnreadCounts();
+        });
+
+        if (currentChatUser && currentChatUser.Id === user.Id) {
+            li.classList.add("active");
+        }
+
+        onlineUsersContainer.appendChild(li);
+    });
+}
+
+// Handle new message or user updates
+function handleNewMessage(message) {
+    
+    // Handle online users update
+    if (message.type === "online_users" && message.users) {
+        updateOnlineUsersList(message.users);
+        return;
+    }
+    
+    // Handle regular chat message
+    if (message.content) {
+        // If message is for current chat, add it to the UI
+        if (currentChatUser &&
+            ((message.sender_id == currentChatUser.Id && message.receiver_id == currentUser.id) ||
+             (message.sender_id == currentUser.id && message.receiver_id == currentChatUser.Id))
+        ) {
+            addMessageToUI(message);
+
+            // If we received a message, mark it as read
+            if (message.sender_id == currentChatUser.Id && message.receiver_id == currentUser.id) {
+                markMessagesAsRead(currentChatUser.Id);
+            }
+        }
+        // Update unread counts if message is for current user but not in current chat
+        else if (message.receiver_id == currentUser.id) {
+            fetchUnreadCounts();
+        }
+    }
+    
+    // Update user list if provided with the message
+    if (message.users && message.users.length > 0) {
+        updateOnlineUsersList(message.users);
+    }
 }
 
 // Send a message
@@ -222,7 +285,7 @@ function sendMessage() {
   } else {
     console.error("WebSocket is not connected");
     // Try to reconnect if socket is closed
-    if (socket.readyState === WebSocket.CLOSED) {
+    if (!socket || socket.readyState === WebSocket.CLOSED) {
       connectWebSocket();
       // Try sending again after reconnection
       setTimeout(() => {
@@ -236,7 +299,7 @@ function sendMessage() {
 }
 
 // Fetch messages between current user and selected user
-export  async function fetchMessages(otherUserId) {
+export async function fetchMessages(otherUserId) {
   if (!currentUser || !currentUser.id) {
     console.error("Cannot fetch messages: currentUser.id is missing");
     return;
@@ -307,7 +370,6 @@ function formatTime(date) {
     year: "numeric",
     month: "2-digit",
     day: "2-digit"
-    
   });
 }
 
@@ -391,16 +453,25 @@ async function markMessagesAsRead(senderId) {
   }
 }
 
-// Periodically check for unread messages (reduce frequency to lower server load)
+// Set up a periodic ping to keep the connection alive and update users list
+setInterval(() => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    // Send a ping message to request updated user list
+    requestOnlineUsers();
+  } else if (currentUser && (!socket || socket.readyState === WebSocket.CLOSED)) {
+    // Try to reconnect if socket is closed
+    connectWebSocket();
+  }
+}, 30000); // Every 30 seconds
+
+// Periodically check for unread messages
 setInterval(() => {
   if (currentUser) {
     fetchUnreadCounts();
   }
-}, 1000); // Changed from 1000ms to 10000ms (10 seconds)
+}, 10000); // Check every 10 seconds
 
 function getSessionIdFromCookies() {
   const match = document.cookie.match(/session_id="?([a-f0-9\-]+)"?/i);
   return match ? match[1] : null;
 }
-
-
