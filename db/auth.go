@@ -26,12 +26,12 @@ func createUserTable() {
 
 	_, err := Db.Prepare(query)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(1,err.Error())
 	}
 
 	_, err = Db.Exec(query)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(2,err.Error())
 	}
 }
 
