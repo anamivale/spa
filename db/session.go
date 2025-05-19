@@ -49,9 +49,10 @@ func InsertSession(sessionID string, userID string, expiresAt time.Time) error {
 
 	// Then insert the new session
 	_, err = tx.Exec(
-		"INSERT INTO sessions (session_id, user_id, expires_at) VALUES (?, ?, ?)",
+		"INSERT INTO sessions (session_id, user_id,created_at, expires_at) VALUES (?, ?,?, ?)",
 		sessionID,
 		userID,
+		time.Now(),
 		expiresAt,
 	)
 	if err != nil {
