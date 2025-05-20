@@ -67,7 +67,6 @@ export async function getPosts(url) {
         let elementUi = document.createElement("div");
         elementUi.textContent = "No posts yet, be the first to post!";
         feedsUi.appendChild(elementUi);
-        return;
       }
       
 
@@ -244,7 +243,7 @@ export async function getPosts(url) {
         let online_users = document.getElementById("online-users");
         if (!online_users) {
           console.error("online-users element not found");
-          return;
+          
         }
       
         // Clear existing users to prevent duplicates
