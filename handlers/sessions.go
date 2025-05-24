@@ -40,7 +40,6 @@ func SessionCheckHandler(w http.ResponseWriter, r *http.Request) {
 			Value:    "",
 			Expires:  time.Now().Add(-time.Hour),
 			Path:     "/",
-			HttpOnly: true,
 		})
 
 		w.Header().Set("Content-Type", "application/json")
@@ -77,7 +76,6 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				Value:    "",
 				Expires:  time.Now().Add(-time.Hour),
 				Path:     "/",
-				HttpOnly: true,
 			})
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
