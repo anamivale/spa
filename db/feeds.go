@@ -7,12 +7,17 @@ import (
 	"spa/utils"
 )
 
-func GetPosts(cat string) ([]models.PostResponse, error) {
+func GetPosts(cat string, id string) ([]models.PostResponse, error) {
 
 	query := `SELECT post_id, user_id, title, content, categories, created_at, imgurl 
 	FROM posts 
 	WHERE categories LIKE ?
 	ORDER BY created_at DESC`
+
+	if cat == "My Posts" {
+		query = "SELECT post_id,user_id,  title, content, categories, created_at, imgurl FROM posts WHERE user_id = ? GROUP BY post_id ORDER BY created_at DESC"
+
+	}
 
 	if cat == "" || cat == "All" {
 		query = "SELECT post_id,user_id,  title, content, categories, created_at, imgurl FROM posts GROUP BY post_id ORDER BY created_at DESC"
@@ -21,6 +26,10 @@ func GetPosts(cat string) ([]models.PostResponse, error) {
 	var output []models.PostResponse
 
 	rows, err := Db.Query(query, "%"+cat+"%")
+	if cat == "My Posts" {
+		rows, err = Db.Query(query, id)
+
+	}
 	if err != nil {
 		return nil, err
 	}

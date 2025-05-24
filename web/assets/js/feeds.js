@@ -152,10 +152,16 @@ export async function getPosts(url) {
 
             //form
             let commentForm = document.createElement("div");
+            commentForm.className = "comment-form";
+
             let textarea = document.createElement("textarea");
             textarea.id = "comment_content"
+            textarea.placeholder = "Add a comment...";
+
+
             let submitButton = document.createElement("button");
             submitButton.textContent = "comment"
+
             commentForm.appendChild(textarea)
             commentForm.appendChild(submitButton)
             commentSection.appendChild(commentForm);
@@ -167,13 +173,27 @@ export async function getPosts(url) {
             //comments 
             element.Comments?.forEach(el =>{
               let comments = document.createElement("div")
+              comments.className = "comment";
+
+              let userInfo = document.createElement("div");
+              userInfo.className = "comment-header";
+
               let uname = document.createElement("p")
-              uname.textContent = `${ el.Username }|${ el.CreatedAt }`
+              uname.className = "comment-username";
+
+               let time = document.createElement("span");
+              time.className = "comment-time";
+              time.textContent = new Date(el.CreatedAt).toLocaleDateString();
+
+              userInfo.appendChild(uname);
+              userInfo.appendChild(time);
+
               let content = document.createElement("p")
+              content.className = "comment-content";
               content.textContent = el.content
               
-              comments.appendChild(uname)
-              comments.appendChild(content)
+                comments.appendChild(userInfo);
+                comments.appendChild(content)
               let reaction = document.createElement("div");
               reaction.className = "reactions";
 
@@ -184,8 +204,10 @@ export async function getPosts(url) {
               reaction.appendChild(likes);
               reaction.appendChild(dislikes);
       
-              likes.textContent = `likes: ${el.LikeCount}`;
-              dislikes.textContent = `dislikes: ${el.DislikeCount}`;
+              likes.textContent = `👍 ${el.LikeCount}`;
+              console.log(likes.textContent );
+              
+              dislikes.textContent = `👎 ${el.DislikeCount}`;
 
               likes.addEventListener("click", async () => {
                 const creaction = await reactToComment(sessionId, el.CommentID, "like");
@@ -243,7 +265,7 @@ export async function getPosts(url) {
       
           li.addEventListener("click", () => {
             // First establish connection and create the UI
-            showChatInterface();
+            showChatInterface(user);
       
             setupEventListeners();
       

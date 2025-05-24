@@ -26,12 +26,12 @@ func createUserTable() {
 
 	_, err := Db.Prepare(query)
 	if err != nil {
-		fmt.Println(1,err.Error())
+		fmt.Println(1, err.Error())
 	}
 
 	_, err = Db.Exec(query)
 	if err != nil {
-		fmt.Println(21,err.Error())
+		fmt.Println(21, err.Error())
 	}
 }
 
@@ -130,8 +130,6 @@ func GetUser(r *http.Request) (*models.User, error) {
 	}
 	userID := cookie.Value
 
-	
-
 	// Step 3: Query the users table to get user details using the user_id
 	var user models.User
 	query := "SELECT nickname, email FROM users WHERE user_id = ?"
@@ -145,7 +143,7 @@ func GetUser(r *http.Request) (*models.User, error) {
 		fmt.Println("Error querying users table:", err)
 		return nil, err
 	}
-
+	user.Id = userID
 	// Return the user object
 	return &user, nil
 }
@@ -161,24 +159,20 @@ func GetPostUser(id string) string {
 	return name
 }
 
-func GetOnlineUsers(name string) []models.User {
-	query := `
-	SELECT nickname, user_id FROM users
-	`
-	rows, err := Db.Query(query)
-	if err != nil {
-		return nil
-	}
-	defer rows.Close()
 
-	var users []models.User
-	for rows.Next() {
-		var user models.User
-		rows.Scan(&user.Nickname, &user.Id)
-		if user.Nickname == name {
-			continue
+func GetUserFromId(id string) string {
+	var  Nickname string
+	query := "SELECT nickname FROM users WHERE user_id = ?"
+	err = Db.QueryRow(query, id).Scan(&Nickname)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			// User not found for the user_id
+			fmt.Println("User not found for user_id:", id)
+			return ""
 		}
-		users = append(users, user)
+		fmt.Println("Error querying users table:", err)
+		return ""
 	}
-	return users
+	// Return the user object
+	return Nickname
 }

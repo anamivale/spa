@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -101,7 +102,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 	// Send personalized users list to the newly connected user
 	go sendPersonalizedUsersList(userIDStr)
-	
+
 	// Also broadcast to everyone since someone new is online
 	go broadcastAllUsersLists()
 
@@ -111,7 +112,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		delete(clients[userIDStr], ws)
 		if len(clients[userIDStr]) == 0 {
 			delete(clients, userIDStr)
-			
+
 			// Update user status to offline in the database
 			_, err := db.Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "off", userIDStr)
 			if err != nil {
@@ -119,7 +120,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		mutex.Unlock()
-		
+
 		// Broadcast to everyone that a user went offline
 		go broadcastAllUsersLists()
 	}()
@@ -161,10 +162,10 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		} else {
 			msg.ID = int(msgID)
 		}
-
+		msg.Name = db.GetUserFromId(msg.SenderID)
 		// Broadcast message
 		broadcast <- msg
-		
+
 		// After sending a message, update user lists as interaction patterns have changed
 		go broadcastAllUsersLists()
 	}
@@ -212,7 +213,7 @@ func HandleMessages() {
 	}
 }
 
-// Handle fetching messages
+// Handle fetching messages with pagination
 func HandleMessage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -227,12 +228,40 @@ func HandleMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get pagination parameters
+	page := 1
+	limit := 10 // Default to 10 messages per page
+
+	pageStr := r.URL.Query().Get("page")
+	if pageStr != "" {
+		var err error
+		page, err = strconv.Atoi(pageStr)
+		if err != nil || page < 1 {
+			page = 1
+		}
+	}
+
+	limitStr := r.URL.Query().Get("limit")
+	if limitStr != "" {
+		var err error
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil || limit < 1 || limit > 50 {
+			limit = 10 // Default to 10 if invalid or too large
+		}
+	}
+
+	// Calculate offset for pagination
+	offset := (page - 1) * limit
+
+	// Query with pagination
 	rows, err := db.Db.Query(`
 		SELECT id, sender_id, receiver_id, content, timestamp, read
 		FROM messages
 		WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
-		ORDER BY timestamp ASC
-	`, userIDStr, otherUserIDStr, otherUserIDStr, userIDStr)
+		ORDER BY timestamp DESC
+		LIMIT ? OFFSET ?
+	`, userIDStr, otherUserIDStr, otherUserIDStr, userIDStr, limit, offset)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -246,7 +275,18 @@ func HandleMessage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		msg.Name = db.GetUserFromId(msg.SenderID)
 		messages = append(messages, msg)
+	}
+
+	// If this is the first page, we'll reverse the order for display
+	// This is because we're fetching most recent first for pagination,
+	// but want to display in chronological order
+	if page == 1 {
+		// Reverse the slice to display messages in chronological order
+		for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
+			messages[i], messages[j] = messages[j], messages[i]
+		}
 	}
 
 	sendResponse(w, "success", "Messages retrieved", messages)

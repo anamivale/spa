@@ -11,6 +11,7 @@ type Response struct {
 
 // Message structure
 type Message struct {
+	Name       string    `json:"name"`
 	ID         int       `json:"id"`
 	SenderID   string    `json:"sender_id"`
 	ReceiverID string    `json:"receiver_id"`

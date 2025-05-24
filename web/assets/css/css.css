@@ -2,6 +2,7 @@ body {
   margin: 0;
   padding: 0;
   border: 0;
+  box-sizing: border-box;
 }
 #app {
   margin: 0;
@@ -13,7 +14,7 @@ body {
 
 .auth {
   width: 350px;
-  height: 850px;
+  height: 100vh;
   background: rgb(214, 211, 211);
   overflow: hidden;
   border-radius: 10px;
@@ -173,6 +174,9 @@ button:hover {
 .right {
   width: 20%;
   height: auto;
+    position: sticky;
+      top: 12vh; /* or any other offset */
+
 }
 
 .center {
@@ -289,13 +293,12 @@ button:hover {
 }
 /* chat*/
 .message-area {
-  width: 70%;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
 #messages {
-  flex: 1;
-  padding: 15px;
+  /* flex: 1; */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -311,10 +314,12 @@ button:hover {
 .message-sent {
   align-self: flex-end;
   background-color: #3498db;
+  border-top-left-radius: 1px; 
   color: white;
 }
 
 .message-received {
+  border-top-right-radius: 1px; 
   align-self: flex-start;
   background-color: #f0f0f0;
   color: #333;
@@ -347,10 +352,38 @@ button:hover {
   width: auto;
 }
 
+
+/* Style improvements for messages container to better show scrolling */
+#messages {
+  scroll-behavior: smooth;
+  padding: 10px;
+  overflow-y: auto;
+  max-height: 58vh;
+  display: flex;
+  flex-direction: column;
+
+}
+
+/* Add a subtle shadow at the top when content is scrollable */
+#messages.scrollable:before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#messages.scrollable.scrolled:before {
+  opacity: 1;
+}
+
 #online-users li {
   position: relative;
-  /* Add these to ensure there's space for the badge */
-  /* Other existing styles for li elements */
   display: flex;
   align-items: center;
   padding-top: 8px;
@@ -460,7 +493,7 @@ button:hover {
   background-color: #ddd;
 }
 /* Navigation elements styling */
-.nav-elements {
+#nav-elements {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -473,6 +506,121 @@ button:hover {
   text-decoration: none;
   cursor: pointer;
 }
+
+/* Add this to your existing CSS */
+.loading-indicator {
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Animation for the loading dots */
+.loading-dots:after {
+  content: '';
+  animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+/*comments */
+.comment-section {
+  margin-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+  padding: 1rem 0;
+}
+
+.comment {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.comment-content {
+  background: #f0f2f5;
+  padding: 8px 16px;
+  border-radius: 18px;
+  max-width: 80%;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.comment-username {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #000;
+}
+
+.comment-time {
+  font-size: 0.75rem;
+  color: #666;
+}
+
+.comment-reactions {
+  display: flex;
+  gap: 12px;
+  margin-left: 44px;
+  margin-top: 4px;
+}
+
+.comment-reactions button {
+  background: none;
+  border: none;
+  color: #666;
+  padding: 0;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.comment-form {
+  display: flex;
+  gap: 12px;
+  margin-top: 1rem;
+  align-items: center;
+}
+
+.comment-form textarea {
+  flex: 1;
+  border: 1px solid #e0e0e0;
+  border-radius: 18px;
+  padding: 12px 16px;
+  resize: none;
+  min-height: 40px;
+  font-family: inherit;
+}
+
+.comment-form button {
+  background: #0a66c2;
+  color: white;
+  border: none;
+  border-radius: 18px;
+  padding: 8px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.comment-form button:hover {
+  background: #004182;
+}
+
+/* Chat header styling */
+#chat-header {
+  margin: 0 0 1rem 0;
+  color: #000;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .main {

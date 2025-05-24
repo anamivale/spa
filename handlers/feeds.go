@@ -21,7 +21,7 @@ func HandleGetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 	cat := r.URL.Query().Get("cat")
 
-	posts, err := db.GetPosts(cat)
+	posts, err := db.GetPosts(cat, user.Id)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -31,7 +31,10 @@ func HandleGetPosts(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	}
-	users := db.GetOnlineUsers(user.Nickname)
+	users, err := db.GetPersonalizedUsersList(user.Id)
+	if err != nil {
+		fmt.Println("Could not load users: ", err.Error())
+	}
 
 	response := map[string]interface{}{
 		"type":     "success",

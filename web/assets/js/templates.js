@@ -13,6 +13,7 @@ export function feeds() {
                         <li class = "cat-el">Technology</li>
                         <li class = "cat-el">Education</li>
                         <li class = "cat-el">Entertainment</li>
+                        <li class = "cat-el">My Posts</li>
                         <li class = "cat-el">Travel</li>
                         <li class = "cat-el">All</li>
                     </div>
@@ -152,13 +153,12 @@ export function createPostForm() {
 
 export function messagesUi() {
   return `
-   <div class="message-area" id= "sms">
-                    <div id="messages"></div>
-                    <div id="message-input" class="hidden">
-                        <textarea id="message-text" placeholder="Type your message..."></textarea>
-                        <button id="send-button" class="btn">Send</button>
-                    </div>
-                </div>
-  `
-  
+   <div class="message-area" id="sms">
+      <div id="messages"></div>
+      <div id="message-input" class="hidden">
+          <textarea id="message-text" placeholder="Type your message..."></textarea>
+          <button id="send-button" class="btn">Send</button>
+      </div>
+   </div>
+  `;
 }

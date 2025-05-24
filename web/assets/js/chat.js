@@ -1,3 +1,5 @@
+// Modified chat.js with improved message loading behavior
+
 import { messagesUi } from "./templates.js";
 
 // Global variables
@@ -9,6 +11,15 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 let reconnectTimeout = null;
 let isManualClose = false;
+
+// Pagination variables
+let currentPage = 1;
+const messagesPerPage = 10;
+let isLoadingMessages = false;
+let hasMoreMessages = true;
+let lastProcessedMessageIds = new Set(); // Track processed messages to avoid duplicates
+let lastLoadTime = 0; // Timestamp of last message batch load
+const LOAD_THROTTLE_DELAY = 300; // 30 seconds throttle delay for pagination
 
 // Initialize the application
 export function initChat() {
@@ -48,19 +59,42 @@ export function setupEventListeners() {
       notificationCount.textContent = "0";
     });
   }
+  
+  // Set up scroll listener for pagination
+  setupScrollListener();
 }
 
 // Show chat interface
-export function showChatInterface() {
+export function showChatInterface(user) {
+  // Reset pagination state
+  currentPage = 1;
+  hasMoreMessages = true;
+  lastProcessedMessageIds.clear(); // Clear tracked message IDs when switching chats
+  lastLoadTime = 0; // Reset the load timestamp
+  
   let feeds = document.getElementById("feeds");
   if (feeds) {
     feeds.innerHTML = messagesUi();
+     // Add chat header
+    const header = document.createElement('h2');
+    header.id = 'chat-header';
+    header.textContent = user ? `Chat with ${user.Nickname}` : 'Chat';
+        feeds.insertBefore(header, feeds.firstChild);
   }
+    // Hide create post button
+  const createPostBtn = document.getElementById("createpost");
+  if (createPostBtn) createPostBtn.style.display = 'none';
 }
 
 // Select a user to chat with
 export function selectUser(user) {
   currentChatUser = user;
+  
+  // Reset pagination state
+  currentPage = 1;
+  hasMoreMessages = true;
+  lastProcessedMessageIds.clear(); // Clear tracked message IDs when switching chats
+  lastLoadTime = 0; // Reset the load timestamp
 
   // Safely get DOM elements
   const userElements = document.querySelectorAll("#online-users li");
@@ -84,11 +118,18 @@ export function selectUser(user) {
   if (messagesContainer) {
     messagesContainer.innerHTML = "";
 
+    // Add initial loading indicator
+    const loadingIndicator = document.createElement("div");
+    loadingIndicator.className = "loading-indicator";
+    loadingIndicator.id = "messages-loading";
+    loadingIndicator.innerHTML = "Loading messages<span class='loading-dots'></span>";
+    messagesContainer.appendChild(loadingIndicator);
+
     // Mark messages as read
     markMessagesAsRead(user.Id);
 
-    // Fetch chat history
-    fetchMessages(user.Id);
+    // Fetch chat history (first page) without auto-scrolling
+    fetchMessages(user.Id, 1, false, false);
   } else {
     console.error("Messages container not found");
   }
@@ -214,7 +255,7 @@ function updateOnlineUsersList(users) {
         }
 
         li.addEventListener("click", () => {
-            showChatInterface();
+            showChatInterface(user);
             setupEventListeners();
             selectUser(user);
             fetchUnreadCounts();
@@ -230,7 +271,6 @@ function updateOnlineUsersList(users) {
 
 // Handle new message or user updates
 function handleNewMessage(message) {
-    
     // Handle online users update
     if (message.type === "online_users" && message.users) {
         updateOnlineUsersList(message.users);
@@ -239,13 +279,24 @@ function handleNewMessage(message) {
     
     // Handle regular chat message
     if (message.content) {
+        // Check if we've already processed this message (by ID)
+        if (message.ID && lastProcessedMessageIds.has(message.ID)) {
+            return; // Skip duplicate messages
+        }
+        
         // If message is for current chat, add it to the UI
         if (currentChatUser &&
             ((message.sender_id == currentChatUser.Id && message.receiver_id == currentUser.id) ||
              (message.sender_id == currentUser.id && message.receiver_id == currentChatUser.Id))
         ) {
-            addMessageToUI(message);
-
+            // Add message ID to processed set
+            if (message.ID) {
+                lastProcessedMessageIds.add(message.ID);
+            }
+            
+            // Add the new message to the UI in real-time
+            addNewMessageToUI(message);
+            
             // If we received a message, mark it as read
             if (message.sender_id == currentChatUser.Id && message.receiver_id == currentUser.id) {
                 markMessagesAsRead(currentChatUser.Id);
@@ -261,6 +312,60 @@ function handleNewMessage(message) {
     if (message.users && message.users.length > 0) {
         updateOnlineUsersList(message.users);
     }
+}
+
+// Function specifically for handling real-time messages
+function addNewMessageToUI(message) {
+    const messagesContainer = document.getElementById("messages");
+    if (!messagesContainer) {
+        console.error("Messages container not found");
+        return;
+    }
+
+    // Check if the message element already exists to prevent duplicates
+    if (message.ID && document.querySelector(`.message[data-id="${message.ID}"]`)) {
+        return; // Skip if this message is already displayed
+    }
+
+    // Create and add the message element without date separator
+    const messageElement = createMessageElement(message);
+    messagesContainer.appendChild(messageElement);
+
+    // Only scroll to bottom if we're already near the bottom
+    const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+    if (isNearBottom) {
+        scrollToBottom();
+    } else {
+        // If not near bottom, show a "new message" indicator
+        const newMessageIndicator = document.getElementById("new-message-indicator") || createNewMessageIndicator();
+        newMessageIndicator.classList.remove("hidden");
+    }
+}
+
+// Create a "new message" indicator
+function createNewMessageIndicator() {
+    const messagesContainer = document.getElementById("messages");
+    if (!messagesContainer) return null;
+
+    // Remove any existing indicator first
+    const existingIndicator = document.getElementById("new-message-indicator");
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+
+    const indicator = document.createElement("div");
+    indicator.id = "new-message-indicator";
+    indicator.className = "new-message-indicator hidden";
+    indicator.innerHTML = "New messages ↓";
+    indicator.addEventListener("click", () => {
+        scrollToBottom();
+        indicator.classList.add("hidden");
+    });
+
+    // Add indicator as the last child of the messages container's parent
+    messagesContainer.parentNode.appendChild(indicator);
+    
+    return indicator;
 }
 
 // Send a message
@@ -282,6 +387,9 @@ function sendMessage() {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
     messageText.value = "";
+    
+    // Scroll to bottom only when sending a message
+    scrollToBottom();
   } else {
     console.error("WebSocket is not connected");
     // Try to reconnect if socket is closed
@@ -292,52 +400,156 @@ function sendMessage() {
         if (socket && socket.readyState === WebSocket.OPEN) {
           socket.send(JSON.stringify(message));
           messageText.value = "";
+          scrollToBottom();
         }
       }, 500);
     }
   }
 }
 
-// Fetch messages between current user and selected user
-export async function fetchMessages(otherUserId) {
+// Fetch messages between current user and selected user with pagination
+export async function fetchMessages(otherUserId, page = 1, append = false, autoScroll = false) {
   if (!currentUser || !currentUser.id) {
     console.error("Cannot fetch messages: currentUser.id is missing");
     return;
   }
 
-  try {
-    const response = await fetch(
-      `/api/messages?user_id=${currentUser.id}&other_user_id=${otherUserId}`
-    );
-    const data = await response.json();
-
-    const messagesContainer = document.getElementById("messages");
-
-    if (messagesContainer && data.status === "success") {
-      messagesContainer.innerHTML = "";
-      data.data?.forEach((message) => {
-        addMessageToUI(message);
-      });
-      scrollToBottom();
-    }
-  } catch (error) {
-    console.error("Error fetching messages:", error);
-  }
-}
-
-// Add a message to the UI
-function addMessageToUI(message) {
-  const messagesContainer = document.getElementById("messages");
-  if (!messagesContainer) {
-    console.error("Messages container not found");
+  // Don't fetch if we're already loading or there are no more messages
+  if (isLoadingMessages || (page > 1 && !hasMoreMessages)) {
     return;
   }
 
+  // Check throttle timing for pagination (except for first page)
+  const now = Date.now();
+  if (page > 1 && now - lastLoadTime < LOAD_THROTTLE_DELAY) {
+    console.log(`Throttling message load. Wait another ${Math.ceil((LOAD_THROTTLE_DELAY - (now - lastLoadTime)) / 1000)}s.`);
+    return;
+  }
+
+  const messagesContainer = document.getElementById("messages");
+  if (!messagesContainer) return;
+
+  // Add loading indicator if loading more (not first page)
+  if (append) {
+    const loadingIndicator = document.createElement("div");
+    loadingIndicator.className = "loading-indicator";
+    loadingIndicator.id = "messages-loading";
+    loadingIndicator.innerHTML = "Loading messages<span class='loading-dots'></span>";
+    messagesContainer.prepend(loadingIndicator);
+  }
+
+  isLoadingMessages = true;
+  
+  try {
+    const response = await fetch(
+      `/api/messages?user_id=${currentUser.id}&other_user_id=${otherUserId}&page=${page}&limit=${messagesPerPage}`
+    );
+    const data = await response.json();
+    
+    // Remove loading indicator if it exists
+    const loadingIndicator = document.getElementById("messages-loading");
+    if (loadingIndicator) {
+      loadingIndicator.remove();
+    }
+    
+    if (messagesContainer && data.status === "success") {
+      // If this is the first page, clear the container
+      if (!append) {
+        messagesContainer.innerHTML = "";
+        lastProcessedMessageIds.clear(); // Clear tracked message IDs when loading first page
+      }
+      
+      // Check if we've reached the end of messages
+      if (!data.data || data.data.length < messagesPerPage) {
+        hasMoreMessages = false;
+        
+       
+      }
+      
+      // Create a document fragment to batch DOM operations
+      const fragment = document.createDocumentFragment();
+      
+      // Add messages to the fragment
+      if (data.data && data.data.length > 0) {
+        // Sort messages by timestamp to ensure proper order
+        const sortedMessages = [...data.data].sort((a, b) => {
+          return new Date(a.timestamp) - new Date(b.timestamp);
+        });
+        
+        sortedMessages.forEach((message) => {
+          // Track this message ID to avoid duplicates
+          if (message.ID) {
+            lastProcessedMessageIds.add(message.ID);
+          }
+          
+          if (append) {
+            // When appending older messages (scrolling up)
+            const messageElement = createMessageElement(message);
+            fragment.prepend(messageElement);
+          } else {
+            // When loading newer messages (initial load)
+            const messageElement = createMessageElement(message);
+            fragment.appendChild(messageElement);
+          }
+        });
+      }
+      
+      // Get the current scroll position before adding new content
+      const scrollPos = messagesContainer.scrollHeight - messagesContainer.scrollTop;
+      
+      // Add the fragment to the DOM
+      if (append) {
+        // When loading older messages, insert at the beginning
+        messagesContainer.prepend(fragment);
+        
+        // Maintain scroll position after appending older content
+        messagesContainer.scrollTop = messagesContainer.scrollHeight - scrollPos;
+      } else {
+        messagesContainer.appendChild(fragment);
+        // Only scroll to bottom if requested or no messages exist
+        if (autoScroll) {
+          scrollToBottom();
+        }
+      }
+      
+      // Update scroll class for shadow effect
+      updateScrollClass();
+      
+      // Update current page and last load time
+      currentPage = page;
+      lastLoadTime = Date.now();
+    }
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    // Remove loading indicator in case of error
+    const loadingIndicator = document.getElementById("messages-loading");
+    if (loadingIndicator) {
+      loadingIndicator.remove();
+    }
+  } finally {
+    isLoadingMessages = false;
+  }
+}
+
+// Add this function to create message elements
+function createMessageElement(message) {
+  
   const messageDiv = document.createElement("div");
   messageDiv.className =
     message.sender_id == currentUser.id
       ? "message message-sent"
       : "message message-received";
+      
+  // Store message ID as data attribute to help prevent duplicates
+  if (message.ID) {
+    messageDiv.dataset.id = message.ID;
+  }
+ const header = document.createElement("div");
+ header.style.color = "black"
+ header.style.fontSize = "20px"
+ header.style.fontWeight = 900
+  header.className = "message-header";
+  header.textContent = message.name;
 
   const content = document.createElement("div");
   content.className = "message-content";
@@ -347,11 +559,63 @@ function addMessageToUI(message) {
   time.className = "message-time";
   time.textContent = formatTime(new Date(message.timestamp));
 
+  messageDiv.appendChild(header);
   messageDiv.appendChild(content);
   messageDiv.appendChild(time);
-  messagesContainer.appendChild(messageDiv);
+  
+  return messageDiv;
+}
 
-  scrollToBottom();
+// Update the scroll class for CSS effects
+function updateScrollClass() {
+  const messagesContainer = document.getElementById("messages");
+  if (!messagesContainer) return;
+  
+  if (messagesContainer.scrollHeight > messagesContainer.clientHeight) {
+    messagesContainer.classList.add("scrollable");
+    if (messagesContainer.scrollTop > 10) {
+      messagesContainer.classList.add("scrolled");
+    } else {
+      messagesContainer.classList.remove("scrolled");
+    }
+  } else {
+    messagesContainer.classList.remove("scrollable", "scrolled");
+  }
+}
+
+// Set up scroll listener for loading more messages
+function setupScrollListener() {
+  const messagesContainer = document.getElementById("messages");
+  if (!messagesContainer) return;
+  
+  // Add throttling for scroll events
+  let lastScrollCheckTime = 0;
+  const scrollThrottleDelay = 2; // 200ms throttling for scroll checks
+  
+  messagesContainer.addEventListener("scroll", function() {
+    const now = Date.now();
+    
+    // Only process scroll events after throttle delay
+    if (now - lastScrollCheckTime >= scrollThrottleDelay) {
+      lastScrollCheckTime = now;
+      
+      // Update scroll class for shadow effect
+      updateScrollClass();
+      
+      // Hide "new message" indicator if we're near the bottom
+      const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+      const indicator = document.getElementById("new-message-indicator");
+      if (isNearBottom && indicator) {
+        indicator.classList.add("hidden");
+      }
+      
+      // If we're near the top (50px), load more messages if allowed by the 30s throttle
+      if (messagesContainer.scrollTop < 50 && !isLoadingMessages && hasMoreMessages && currentChatUser) {
+        // This will check internally if it can load based on the 30s throttle
+        fetchMessages(currentChatUser.Id, currentPage + 1, true, false);
+      }
+    }
+  });
 }
 
 // Scroll to bottom of messages container
@@ -452,6 +716,41 @@ async function markMessagesAsRead(senderId) {
     console.error("Error marking messages as read:", error);
   }
 }
+
+// Add CSS for the new message indicator
+function addNewMessageIndicatorStyles() {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = `
+    .new-message-indicator {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #4CAF50;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      cursor: pointer;
+      opacity: 0.9;
+      transition: all 0.3s ease;
+      z-index: 5;
+    }
+    
+    .new-message-indicator:hover {
+      opacity: 1;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    }
+    
+    .new-message-indicator.hidden {
+      display: none;
+    }
+  `;
+  document.head.appendChild(styleElement);
+}
+
+// Add styles when the document is loaded
+document.addEventListener('DOMContentLoaded', addNewMessageIndicatorStyles);
 
 // Set up a periodic ping to keep the connection alive and update users list
 setInterval(() => {
