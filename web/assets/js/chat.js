@@ -462,8 +462,6 @@ export async function fetchMessages(otherUserId, page = 1, append = false, autoS
       // Check if we've reached the end of messages
       if (!data.data || data.data.length < messagesPerPage) {
         hasMoreMessages = false;
-        
-       
       }
       
       // Create a document fragment to batch DOM operations
@@ -506,8 +504,14 @@ export async function fetchMessages(otherUserId, page = 1, append = false, autoS
         messagesContainer.scrollTop = messagesContainer.scrollHeight - scrollPos;
       } else {
         messagesContainer.appendChild(fragment);
-        // Only scroll to bottom if requested or no messages exist
-        if (autoScroll) {
+        
+        // Auto-scroll to bottom ONLY for the first page (page 1)
+        if (page === 1) {
+          scrollToBottom();
+        }
+        // For subsequent pages loaded without append (shouldn't normally happen), 
+        // respect the autoScroll parameter
+        else if (autoScroll) {
           scrollToBottom();
         }
       }
