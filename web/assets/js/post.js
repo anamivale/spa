@@ -5,6 +5,14 @@ export function createPost() {
     let title = document.getElementById("title").value
     let content  = document.getElementById("content").value
     let selectedCat = document.querySelectorAll('input[name="category"]:checked')
+    console.log(fileInput);
+    
+    if (content.trim() === "" && title.trim() === "" && fileInput.files.length === 0 ){
+        alert("Empty post")
+        Feeds()
+        return
+        
+    } else {
 
     let categories = Array.from(selectedCat).map(cat => cat.value)
 
@@ -16,10 +24,8 @@ export function createPost() {
 
     if (fileInput.files.length !== 0){
         REadFileContent(fileInput).then(({ file, fileContent }) => {
-            if (content) {
                 req["filename"] = file
                 req["filecontent"] = fileContent
-            }
 
             sendRequest(req)
     
@@ -31,7 +37,7 @@ export function createPost() {
         sendRequest(req)
     }
 
-    
+}
 }
 
 

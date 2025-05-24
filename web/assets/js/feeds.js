@@ -180,6 +180,7 @@ export async function getPosts(url) {
 
               let uname = document.createElement("p")
               uname.className = "comment-username";
+              uname.textContent = el.Username
 
                let time = document.createElement("span");
               time.className = "comment-time";
@@ -188,7 +189,7 @@ export async function getPosts(url) {
               userInfo.appendChild(uname);
               userInfo.appendChild(time);
 
-              let content = document.createElement("p")
+              let content = document.createElement("div")
               content.className = "comment-content";
               content.textContent = el.content
               
@@ -205,21 +206,20 @@ export async function getPosts(url) {
               reaction.appendChild(dislikes);
       
               likes.textContent = `👍 ${el.LikeCount}`;
-              console.log(likes.textContent );
               
               dislikes.textContent = `👎 ${el.DislikeCount}`;
 
               likes.addEventListener("click", async () => {
                 const creaction = await reactToComment(sessionId, el.CommentID, "like");
                 
-                likes.textContent = `likes: ${creaction.likes}`;
-                dislikes.textContent = `dislikes: ${creaction.dislikes}`;
+                likes.textContent = `👍 ${creaction.likes}`;
+                dislikes.textContent = `👎 ${creaction.dislikes}`;
               });
       
               dislikes.addEventListener("click", async () => {
                 const creaction = await reactToComment(sessionId, el.CommentID, "dislike");
-                likes.textContent = `likes: ${creaction.likes}`;
-                dislikes.textContent = `dislikes: ${creaction.dislikes}`;
+                likes.textContent = `👍 ${creaction.likes}`;
+                dislikes.textContent = `👎 ${creaction.dislikes}`;
               });
 
               comments.appendChild(reaction)
