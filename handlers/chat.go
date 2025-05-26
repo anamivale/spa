@@ -81,7 +81,7 @@ func broadcastAllUsersLists() {
 func HandleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("WebSocket upgrade failed: %v", err)
 		return
 	}
 	defer ws.Close()
@@ -98,13 +98,13 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		clients[userIDStr] = make(map[*websocket.Conn]bool)
 	}
 	clients[userIDStr][ws] = true
-	
+
 	// Update user status to online in the database when connection is established
 	_, err = db.Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "on", userIDStr)
 	if err != nil {
 		log.Printf("Error updating user status to online: %v", err)
 	}
-	
+
 	mutex.Unlock()
 
 	// Send personalized users list to the newly connected user
