@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"spa/models"
 	"spa/utils"
+	"strings"
 )
 
 // ***** Sign up ****
@@ -123,12 +124,13 @@ func LogoutUser(id string) error {
 func GetUser(r *http.Request) (*models.User, error) {
 	// Step 1: Retrieve session_id from the cookie
 	cookie, err := r.Cookie("session_id")
+	ids := strings.Split(cookie.Value, ":")
 	if err != nil {
 		// Cookie not found
 		fmt.Println("Cookie not found:", err)
 		return nil, err
 	}
-	userID := cookie.Value
+	userID := ids[0]
 
 	// Step 3: Query the users table to get user details using the user_id
 	var user models.User
