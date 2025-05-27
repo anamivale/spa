@@ -24,6 +24,14 @@ func SessionCheckHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Validate the session
 	ids := strings.Split(cookie.Value, ":")
+	if len(ids) != 2 {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "unauthenticated",
+		})
+		return
+	}
 
 	_, valid, err := db.ValidateSession(ids[1])
 	if err != nil {
@@ -71,7 +79,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Validate session
-			ids := strings.Split(cookie.Value, ":")
+		ids := strings.Split(cookie.Value, ":")
 
 		userID, valid, err := db.ValidateSession(ids[1])
 		if err != nil || !valid {
