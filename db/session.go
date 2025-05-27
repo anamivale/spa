@@ -68,7 +68,7 @@ func ValidateSession(sessionID string) (string, bool, error) {
 	var userID string
 	var expiresAt time.Time
 	err := Db.QueryRow(
-		"SELECT user_id, expires_at FROM sessions WHERE user_id = ?",
+		"SELECT user_id, expires_at FROM sessions WHERE session_id = ?",
 		sessionID,
 	).Scan(&userID, &expiresAt)
 
@@ -100,7 +100,7 @@ func DeleteExpiredSessions() error {
 
 // DeleteSession removes a specific session
 func DeleteSession(sessionID string) error {
-	_, err := Db.Exec("DELETE FROM sessions WHERE user_id = ?", sessionID)
+	_, err := Db.Exec("DELETE FROM sessions WHERE session_id = ?", sessionID)
 	return err
 }
 
