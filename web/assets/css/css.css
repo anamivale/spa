@@ -387,14 +387,20 @@ button:hover {
   opacity: 1;
 }
 
+#online-users {
+  padding: 0;
+  margin: 0;
+  list-style-type: none; 
+}
+
+
 #online-users li {
   position: relative;
   display: flex;
   align-items: center;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 10px;
+  padding: 8px 0 8px ;
   cursor: pointer;
+  min-width: 150px;
 }
 
 /* Optional: Style for active user */
@@ -646,7 +652,7 @@ button:hover {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  margin-right: 5px;
+  margin-left: 5px;
 }
 
 .online {
