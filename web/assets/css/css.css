@@ -4,6 +4,7 @@ body {
   border: 0;
   box-sizing: border-box;
 }
+
 #app {
   margin: 0;
   padding: 0;
@@ -86,20 +87,20 @@ button:hover {
 }
 
 .login label {
-  
+
   color: #573b8a;
   transform: scale(0.6);
 }
 
-#chk:checked ~ .login {
+#chk:checked~.login {
   transform: translateY(-850px);
 }
 
-#chk:checked ~ .login label {
+#chk:checked~.login label {
   transform: scale(1);
 }
 
-#chk:checked ~ .signup label {
+#chk:checked~.signup label {
   transform: scale(0.6);
 }
 
@@ -128,7 +129,8 @@ button:hover {
   padding: 10px 20px;
   position: sticky;
   top: 0;
-  z-index: 1000; /* keeps it above other content */
+  z-index: 1000;
+  /* keeps it above other content */
 }
 
 .navbar h1 {
@@ -174,9 +176,8 @@ button:hover {
 .right {
   width: 20%;
   height: auto;
-    position: sticky;
-      top: 12vh; /* or any other offset */
-
+  position: sticky;
+  top: 12vh;
 }
 
 .center {
@@ -278,6 +279,7 @@ button:hover {
   margin: 4px 0;
   color: #333;
 }
+
 /* reactions */
 
 .reactions {
@@ -291,18 +293,21 @@ button:hover {
   width: 10%;
   margin: 10px;
 }
+
 /* chat*/
 .message-area {
   width: 100%;
   display: flex;
   flex-direction: column;
 }
+
 #messages {
   /* flex: 1; */
   overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
+
 .message {
   max-width: 80%;
   padding: 10px 15px;
@@ -314,12 +319,12 @@ button:hover {
 .message-sent {
   align-self: flex-end;
   background-color: #3498db;
-  border-top-left-radius: 1px; 
+  border-top-left-radius: 1px;
   color: white;
 }
 
 .message-received {
-  border-top-right-radius: 1px; 
+  border-top-right-radius: 1px;
   align-self: flex-start;
   background-color: #f0f0f0;
   color: #333;
@@ -372,7 +377,7 @@ button:hover {
   left: 0;
   right: 0;
   height: 10px;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.3s;
@@ -396,6 +401,7 @@ button:hover {
 #online-users li.active {
   background-color: #f11111;
 }
+
 .unread-badge {
   position: absolute;
   right: 10px;
@@ -427,6 +433,7 @@ button:hover {
   align-items: center;
   justify-content: center;
 }
+
 .bell {
   position: relative;
   margin-left: auto;
@@ -437,6 +444,7 @@ button:hover {
 .bell i {
   font-size: 24px;
 }
+
 .hidden {
   display: none !important;
 }
@@ -445,6 +453,7 @@ button:hover {
   font-size: 2rem;
   cursor: pointer;
 }
+
 .close {
   display: none;
 }
@@ -492,6 +501,7 @@ button:hover {
 .dropdown-content li:hover {
   background-color: #ddd;
 }
+
 /* Navigation elements styling */
 #nav-elements {
   display: flex;
@@ -523,9 +533,20 @@ button:hover {
 }
 
 @keyframes dots {
-  0%, 20% { content: '.'; }
-  40% { content: '..'; }
-  60%, 100% { content: '...'; }
+
+  0%,
+  20% {
+    content: '.';
+  }
+
+  40% {
+    content: '..';
+  }
+
+  60%,
+  100% {
+    content: '...';
+  }
 }
 
 /*comments */
@@ -629,7 +650,7 @@ button:hover {
 }
 
 .online {
-  background-color: #4caf50; 
+  background-color: #4caf50;
   box-shadow: 0 0 5px #4caf50;
 }
 
@@ -637,6 +658,7 @@ button:hover {
   background-color: #999797;
   opacity: 0.6;
 }
+
 /* Responsive */
 @media (max-width: 768px) {
   .main {
@@ -645,16 +667,21 @@ button:hover {
 
   .left,
   .right {
+    top:0;
+    position: relative;
     width: 80%;
   }
+
 }
 
 @media (max-width: 350px) {
   .main {
     width: 100%;
   }
+
   .left,
   .right {
+    position: relative;
     width: 80%;
   }
 }
