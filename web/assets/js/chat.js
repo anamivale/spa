@@ -56,13 +56,6 @@ export function setupEventListeners() {
     });
   }
 
-  // Notification bell
-  if (notificationBell && notificationCount) {
-    notificationBell.addEventListener("click", () => {
-      notificationCount.classList.add("hidden");
-      notificationCount.textContent = "0";
-    });
-  }
 
   // Set up scroll listener for pagination
   setupScrollListener();
