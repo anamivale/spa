@@ -23,11 +23,15 @@ const LOAD_THROTTLE_DELAY = 300; // 30 seconds throttle delay for pagination
 
 // Initialize the application
 export function initChat() {
-  const sessionId = getSessionIdFromCookies();
+  const cookieValue = getSessionIdFromCookies();
+  if (!cookieValue) return;
+
+  const ids = cookieValue.split(":")
+  const sessionId = ids[0]
   if (!sessionId) return;
 
   currentUser = { id: sessionId };
-  
+
   connectWebSocket();
   fetchUnreadCounts();
   setupEventListeners();
@@ -59,7 +63,7 @@ export function setupEventListeners() {
       notificationCount.textContent = "0";
     });
   }
-  
+
   // Set up scroll listener for pagination
   setupScrollListener();
 }
@@ -71,17 +75,17 @@ export function showChatInterface(user) {
   hasMoreMessages = true;
   lastProcessedMessageIds.clear(); // Clear tracked message IDs when switching chats
   lastLoadTime = 0; // Reset the load timestamp
-  
+
   let feeds = document.getElementById("feeds");
   if (feeds) {
     feeds.innerHTML = messagesUi();
-     // Add chat header
+    // Add chat header
     const header = document.createElement('h2');
     header.id = 'chat-header';
     header.textContent = user ? `Chat with ${user.Nickname}` : 'Chat';
-        feeds.insertBefore(header, feeds.firstChild);
+    feeds.insertBefore(header, feeds.firstChild);
   }
-    // Hide create post button
+  // Hide create post button
   const createPostBtn = document.getElementById("createpost");
   if (createPostBtn) createPostBtn.style.display = 'none';
 }
@@ -89,7 +93,7 @@ export function showChatInterface(user) {
 // Select a user to chat with
 export function selectUser(user) {
   currentChatUser = user;
-  
+
   // Reset pagination state
   currentPage = 1;
   hasMoreMessages = true;
@@ -159,7 +163,7 @@ export function connectWebSocket() {
   socket.onopen = () => {
     console.log("WebSocket connection established");
     reconnectAttempts = 0; // Reset on successful connection
-    
+
     // Request online users immediately after connection is established
     requestOnlineUsers();
   };
@@ -171,7 +175,7 @@ export function connectWebSocket() {
 
   socket.onclose = (event) => {
     console.log("WebSocket connection closed", event.code, event.reason);
-    
+
     // Don't reconnect if we manually closed or user logged out
     if (isManualClose || !currentUser) {
       isManualClose = false;
@@ -181,7 +185,7 @@ export function connectWebSocket() {
     // Exponential backoff for reconnection
     const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
     reconnectAttempts++;
-    
+
     if (reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
       console.log(`Attempting reconnect in ${delay}ms (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`);
       reconnectTimeout = setTimeout(() => {
@@ -222,150 +226,150 @@ export function disconnectWebSocket() {
 
 // Update online users list with the received data
 function updateOnlineUsersList(users) {
-    const onlineUsersContainer = document.getElementById("online-users");
-    if (!onlineUsersContainer) return;
+  const onlineUsersContainer = document.getElementById("online-users");
+  if (!onlineUsersContainer) return;
 
-    onlineUsersContainer.innerHTML = '';
+  onlineUsersContainer.innerHTML = '';
 
-    if (!users || users.length === 0) {
-        // Handle no users case
-        const li = document.createElement("li");
-        li.textContent = "No users online";
-        li.className = "no-users";
-        onlineUsersContainer.appendChild(li);
-        return;
+  if (!users || users.length === 0) {
+    // Handle no users case
+    const li = document.createElement("li");
+    li.textContent = "No users online";
+    li.className = "no-users";
+    onlineUsersContainer.appendChild(li);
+    return;
+  }
+
+  users.forEach(user => {
+    const li = document.createElement("li");
+    li.textContent = user.Nickname;
+    li.dataset.userId = user.Id;
+
+    // Add status indicator
+    const statusDot = document.createElement("span");
+    statusDot.className = `status-dot ${user.Status === "on" ? "online" : "offline"}`;
+    li.appendChild(statusDot);
+
+    // Add unread badge if needed
+    if (unreadCounts[user.Id] && unreadCounts[user.Id] > 0) {
+      const badge = document.createElement("span");
+      badge.className = "unread-badge";
+      badge.textContent = unreadCounts[user.Id];
+      li.appendChild(badge);
     }
 
-    users.forEach(user => {
-        const li = document.createElement("li");
-        li.textContent = user.Nickname;
-        li.dataset.userId = user.Id;
-
-        // Add status indicator
-        const statusDot = document.createElement("span");
-        statusDot.className = `status-dot ${user.Status === "on" ? "online" : "offline"}`;
-        li.appendChild(statusDot);
-
-        // Add unread badge if needed
-        if (unreadCounts[user.Id] && unreadCounts[user.Id] > 0) {
-            const badge = document.createElement("span");
-            badge.className = "unread-badge";
-            badge.textContent = unreadCounts[user.Id];
-            li.appendChild(badge);
-        }
-
-        li.addEventListener("click", () => {
-            showChatInterface(user);
-            setupEventListeners();
-            selectUser(user);
-            fetchUnreadCounts();
-        });
-
-        if (currentChatUser && currentChatUser.Id === user.Id) {
-            li.classList.add("active");
-        }
-
-        onlineUsersContainer.appendChild(li);
+    li.addEventListener("click", () => {
+      showChatInterface(user);
+      setupEventListeners();
+      selectUser(user);
+      fetchUnreadCounts();
     });
+
+    if (currentChatUser && currentChatUser.Id === user.Id) {
+      li.classList.add("active");
+    }
+
+    onlineUsersContainer.appendChild(li);
+  });
 }
 
 // Handle new message or user updates
 function handleNewMessage(message) {
-    // Handle online users update
-    if (message.type === "online_users" && message.users) {
-        updateOnlineUsersList(message.users);
-        return;
+  // Handle online users update
+  if (message.type === "online_users" && message.users) {
+    updateOnlineUsersList(message.users);
+    return;
+  }
+
+  // Handle regular chat message
+  if (message.content) {
+    // Check if we've already processed this message (by ID)
+    if (message.ID && lastProcessedMessageIds.has(message.ID)) {
+      return; // Skip duplicate messages
     }
-    
-    // Handle regular chat message
-    if (message.content) {
-        // Check if we've already processed this message (by ID)
-        if (message.ID && lastProcessedMessageIds.has(message.ID)) {
-            return; // Skip duplicate messages
-        }
-        
-        // If message is for current chat, add it to the UI
-        if (currentChatUser &&
-            ((message.sender_id == currentChatUser.Id && message.receiver_id == currentUser.id) ||
-             (message.sender_id == currentUser.id && message.receiver_id == currentChatUser.Id))
-        ) {
-            // Add message ID to processed set
-            if (message.ID) {
-                lastProcessedMessageIds.add(message.ID);
-            }
-            
-            // Add the new message to the UI in real-time
-            addNewMessageToUI(message);
-            
-            // If we received a message, mark it as read
-            if (message.sender_id == currentChatUser.Id && message.receiver_id == currentUser.id) {
-                markMessagesAsRead(currentChatUser.Id);
-            }
-        }
-        // Update unread counts if message is for current user but not in current chat
-        else if (message.receiver_id == currentUser.id) {
-            fetchUnreadCounts();
-        }
+
+    // If message is for current chat, add it to the UI
+    if (currentChatUser &&
+      ((message.sender_id == currentChatUser.Id && message.receiver_id == currentUser.id) ||
+        (message.sender_id == currentUser.id && message.receiver_id == currentChatUser.Id))
+    ) {
+      // Add message ID to processed set
+      if (message.ID) {
+        lastProcessedMessageIds.add(message.ID);
+      }
+
+      // Add the new message to the UI in real-time
+      addNewMessageToUI(message);
+
+      // If we received a message, mark it as read
+      if (message.sender_id == currentChatUser.Id && message.receiver_id == currentUser.id) {
+        markMessagesAsRead(currentChatUser.Id);
+      }
     }
-    
-    // Update user list if provided with the message
-    if (message.users && message.users.length > 0) {
-        updateOnlineUsersList(message.users);
+    // Update unread counts if message is for current user but not in current chat
+    else if (message.receiver_id == currentUser.id) {
+      fetchUnreadCounts();
     }
+  }
+
+  // Update user list if provided with the message
+  if (message.users && message.users.length > 0) {
+    updateOnlineUsersList(message.users);
+  }
 }
 
 // Function specifically for handling real-time messages
 function addNewMessageToUI(message) {
-    const messagesContainer = document.getElementById("messages");
-    if (!messagesContainer) {
-        console.error("Messages container not found");
-        return;
-    }
+  const messagesContainer = document.getElementById("messages");
+  if (!messagesContainer) {
+    console.error("Messages container not found");
+    return;
+  }
 
-    // Check if the message element already exists to prevent duplicates
-    if (message.ID && document.querySelector(`.message[data-id="${message.ID}"]`)) {
-        return; // Skip if this message is already displayed
-    }
+  // Check if the message element already exists to prevent duplicates
+  if (message.ID && document.querySelector(`.message[data-id="${message.ID}"]`)) {
+    return; // Skip if this message is already displayed
+  }
 
-    // Create and add the message element without date separator
-    const messageElement = createMessageElement(message);
-    messagesContainer.appendChild(messageElement);
+  // Create and add the message element without date separator
+  const messageElement = createMessageElement(message);
+  messagesContainer.appendChild(messageElement);
 
-    // Only scroll to bottom if we're already near the bottom
-    const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
-    if (isNearBottom) {
-        scrollToBottom();
-    } else {
-        // If not near bottom, show a "new message" indicator
-        const newMessageIndicator = document.getElementById("new-message-indicator") || createNewMessageIndicator();
-        newMessageIndicator.classList.remove("hidden");
-    }
+  // Only scroll to bottom if we're already near the bottom
+  const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
+  if (isNearBottom) {
+    scrollToBottom();
+  } else {
+    // If not near bottom, show a "new message" indicator
+    const newMessageIndicator = document.getElementById("new-message-indicator") || createNewMessageIndicator();
+    newMessageIndicator.classList.remove("hidden");
+  }
 }
 
 // Create a "new message" indicator
 function createNewMessageIndicator() {
-    const messagesContainer = document.getElementById("messages");
-    if (!messagesContainer) return null;
+  const messagesContainer = document.getElementById("messages");
+  if (!messagesContainer) return null;
 
-    // Remove any existing indicator first
-    const existingIndicator = document.getElementById("new-message-indicator");
-    if (existingIndicator) {
-        existingIndicator.remove();
-    }
+  // Remove any existing indicator first
+  const existingIndicator = document.getElementById("new-message-indicator");
+  if (existingIndicator) {
+    existingIndicator.remove();
+  }
 
-    const indicator = document.createElement("div");
-    indicator.id = "new-message-indicator";
-    indicator.className = "new-message-indicator hidden";
-    indicator.innerHTML = "New messages ↓";
-    indicator.addEventListener("click", () => {
-        scrollToBottom();
-        indicator.classList.add("hidden");
-    });
+  const indicator = document.createElement("div");
+  indicator.id = "new-message-indicator";
+  indicator.className = "new-message-indicator hidden";
+  indicator.innerHTML = "New messages ↓";
+  indicator.addEventListener("click", () => {
+    scrollToBottom();
+    indicator.classList.add("hidden");
+  });
 
-    // Add indicator as the last child of the messages container's parent
-    messagesContainer.parentNode.appendChild(indicator);
-    
-    return indicator;
+  // Add indicator as the last child of the messages container's parent
+  messagesContainer.parentNode.appendChild(indicator);
+
+  return indicator;
 }
 
 // Send a message
@@ -387,7 +391,7 @@ function sendMessage() {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
     messageText.value = "";
-    
+
     // Scroll to bottom only when sending a message
     scrollToBottom();
   } else {
@@ -439,47 +443,47 @@ export async function fetchMessages(otherUserId, page = 1, append = false, autoS
   }
 
   isLoadingMessages = true;
-  
+
   try {
     const response = await fetch(
       `/api/messages?user_id=${currentUser.id}&other_user_id=${otherUserId}&page=${page}&limit=${messagesPerPage}`
     );
     const data = await response.json();
-    
+
     // Remove loading indicator if it exists
     const loadingIndicator = document.getElementById("messages-loading");
     if (loadingIndicator) {
       loadingIndicator.remove();
     }
-    
+
     if (messagesContainer && data.status === "success") {
       // If this is the first page, clear the container
       if (!append) {
         messagesContainer.innerHTML = "";
         lastProcessedMessageIds.clear(); // Clear tracked message IDs when loading first page
       }
-      
+
       // Check if we've reached the end of messages
       if (!data.data || data.data.length < messagesPerPage) {
         hasMoreMessages = false;
       }
-      
+
       // Create a document fragment to batch DOM operations
       const fragment = document.createDocumentFragment();
-      
+
       // Add messages to the fragment
       if (data.data && data.data.length > 0) {
         // Sort messages by timestamp to ensure proper order
         const sortedMessages = [...data.data].sort((a, b) => {
           return new Date(a.timestamp) - new Date(b.timestamp);
         });
-        
+
         sortedMessages.forEach((message) => {
           // Track this message ID to avoid duplicates
           if (message.ID) {
             lastProcessedMessageIds.add(message.ID);
           }
-          
+
           if (append) {
             // When appending older messages (scrolling up)
             const messageElement = createMessageElement(message);
@@ -491,20 +495,20 @@ export async function fetchMessages(otherUserId, page = 1, append = false, autoS
           }
         });
       }
-      
+
       // Get the current scroll position before adding new content
       const scrollPos = messagesContainer.scrollHeight - messagesContainer.scrollTop;
-      
+
       // Add the fragment to the DOM
       if (append) {
         // When loading older messages, insert at the beginning
         messagesContainer.prepend(fragment);
-        
+
         // Maintain scroll position after appending older content
         messagesContainer.scrollTop = messagesContainer.scrollHeight - scrollPos;
       } else {
         messagesContainer.appendChild(fragment);
-        
+
         // Auto-scroll to bottom ONLY for the first page (page 1)
         if (page === 1) {
           scrollToBottom();
@@ -515,10 +519,10 @@ export async function fetchMessages(otherUserId, page = 1, append = false, autoS
           scrollToBottom();
         }
       }
-      
+
       // Update scroll class for shadow effect
       updateScrollClass();
-      
+
       // Update current page and last load time
       currentPage = page;
       lastLoadTime = Date.now();
@@ -537,21 +541,21 @@ export async function fetchMessages(otherUserId, page = 1, append = false, autoS
 
 // Add this function to create message elements
 function createMessageElement(message) {
-  
+
   const messageDiv = document.createElement("div");
   messageDiv.className =
     message.sender_id == currentUser.id
       ? "message message-sent"
       : "message message-received";
-      
+
   // Store message ID as data attribute to help prevent duplicates
   if (message.ID) {
     messageDiv.dataset.id = message.ID;
   }
- const header = document.createElement("div");
- header.style.color = "black"
- header.style.fontSize = "20px"
- header.style.fontWeight = 900
+  const header = document.createElement("div");
+  header.style.color = "black"
+  header.style.fontSize = "20px"
+  header.style.fontWeight = 900
   header.className = "message-header";
   header.textContent = message.name;
 
@@ -566,7 +570,7 @@ function createMessageElement(message) {
   messageDiv.appendChild(header);
   messageDiv.appendChild(content);
   messageDiv.appendChild(time);
-  
+
   return messageDiv;
 }
 
@@ -574,7 +578,7 @@ function createMessageElement(message) {
 function updateScrollClass() {
   const messagesContainer = document.getElementById("messages");
   if (!messagesContainer) return;
-  
+
   if (messagesContainer.scrollHeight > messagesContainer.clientHeight) {
     messagesContainer.classList.add("scrollable");
     if (messagesContainer.scrollTop > 10) {
@@ -591,28 +595,28 @@ function updateScrollClass() {
 function setupScrollListener() {
   const messagesContainer = document.getElementById("messages");
   if (!messagesContainer) return;
-  
+
   // Add throttling for scroll events
   let lastScrollCheckTime = 0;
   const scrollThrottleDelay = 2; // 200ms throttling for scroll checks
-  
-  messagesContainer.addEventListener("scroll", function() {
+
+  messagesContainer.addEventListener("scroll", function () {
     const now = Date.now();
-    
+
     // Only process scroll events after throttle delay
     if (now - lastScrollCheckTime >= scrollThrottleDelay) {
       lastScrollCheckTime = now;
-      
+
       // Update scroll class for shadow effect
       updateScrollClass();
-      
+
       // Hide "new message" indicator if we're near the bottom
       const isNearBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight < 100;
       const indicator = document.getElementById("new-message-indicator");
       if (isNearBottom && indicator) {
         indicator.classList.add("hidden");
       }
-      
+
       // If we're near the top (50px), load more messages if allowed by the 30s throttle
       if (messagesContainer.scrollTop < 50 && !isLoadingMessages && hasMoreMessages && currentChatUser) {
         // This will check internally if it can load based on the 30s throttle

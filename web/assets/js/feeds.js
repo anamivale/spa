@@ -14,17 +14,17 @@ export function Feeds() {
 
   const categoriesSort = Array.from(document.querySelectorAll(".cat-el"))
   categoriesSort.forEach(el => {
-    el.addEventListener("click", ()=>{
-      url = "/feeds?cat="+el.textContent.trim()
+    el.addEventListener("click", () => {
+      url = "/feeds?cat=" + el.textContent.trim()
       getPosts(url);
 
       console.log(url);
 
     })
-    
+
   })
   console.log(url);
-  
+
   initChat()
 
   document.getElementById("logout").addEventListener("click", () => {
@@ -53,7 +53,7 @@ export function Feeds() {
 }
 
 export async function getPosts(url) {
-  
+
   try {
     const res = await fetch(url);
     const data = await res.json();
@@ -68,7 +68,7 @@ export async function getPosts(url) {
         elementUi.textContent = "No posts yet, be the first to post!";
         feedsUi.appendChild(elementUi);
       }
-      
+
 
       data.response?.forEach((element) => {
         let elementUi = document.createElement("div");
@@ -86,7 +86,7 @@ export async function getPosts(url) {
           .replaceAll('"', "");
         let timeUi = document.createElement("p");
         timeUi.textContent =
-          "Posted by: "+element.Username+"| Categories:" + cat + " | Created " + element.Time;
+          "Posted by: " + element.Username + "| Categories:" + cat + " | Created " + element.Time;
 
         let img = document.createElement("img");
         img.src = element.Imgurl;
@@ -108,7 +108,10 @@ export async function getPosts(url) {
         likes.textContent = `likes: ${element.LikeCount}`;
         dislikes.textContent = `dislikes: ${element.DislikeCount}`;
         comment.textContent = `comments: ${element.CommentCount}`;
-        const sessionId = getCookie("session_id");
+        const cookieValue = getCookie("session_id");
+
+        const ids = cookieValue.split(":")
+        const sessionId = ids[0]
 
         likes.addEventListener("click", async () => {
           const reaction = await reactToPost(sessionId, element.PostID, "like");
@@ -165,12 +168,12 @@ export async function getPosts(url) {
             commentForm.appendChild(submitButton)
             commentSection.appendChild(commentForm);
 
-            submitButton.addEventListener("click", () =>{
+            submitButton.addEventListener("click", () => {
               createComment(element.PostID)
             })
 
             //comments 
-            element.Comments?.forEach(el =>{
+            element.Comments?.forEach(el => {
               let comments = document.createElement("div")
               comments.className = "comment";
 
@@ -181,7 +184,7 @@ export async function getPosts(url) {
               uname.className = "comment-username";
               uname.textContent = el.Username
 
-               let time = document.createElement("span");
+              let time = document.createElement("span");
               time.className = "comment-time";
               time.textContent = new Date(el.CreatedAt).toLocaleDateString();
 
@@ -191,30 +194,30 @@ export async function getPosts(url) {
               let content = document.createElement("div")
               content.className = "comment-content";
               content.textContent = el.content
-              
-                comments.appendChild(userInfo);
-                comments.appendChild(content)
+
+              comments.appendChild(userInfo);
+              comments.appendChild(content)
               let reaction = document.createElement("div");
               reaction.className = "reactions";
 
               let likes = document.createElement("button");
               let dislikes = document.createElement("button");
-      
-      
+
+
               reaction.appendChild(likes);
               reaction.appendChild(dislikes);
-      
+
               likes.textContent = `👍 ${el.LikeCount}`;
-              
+
               dislikes.textContent = `👎 ${el.DislikeCount}`;
 
               likes.addEventListener("click", async () => {
                 const creaction = await reactToComment(sessionId, el.CommentID, "like");
-                
+
                 likes.textContent = `👍 ${creaction.likes}`;
                 dislikes.textContent = `👎 ${creaction.dislikes}`;
               });
-      
+
               dislikes.addEventListener("click", async () => {
                 const creaction = await reactToComment(sessionId, el.CommentID, "dislike");
                 likes.textContent = `👍 ${creaction.likes}`;
@@ -231,59 +234,59 @@ export async function getPosts(url) {
           }
         });
 
-       
+
 
         feedsUi.appendChild(elementUi);
       });
 
 
 
-       
-      
-        let online_users = document.getElementById("online-users");
-        if (!online_users) {
-          console.error("online-users element not found");
-          
+
+
+      let online_users = document.getElementById("online-users");
+      if (!online_users) {
+        console.error("online-users element not found");
+
+      }
+
+      // Clear existing users to prevent duplicates
+      online_users.innerHTML = '';
+
+      data.users?.forEach((user) => {
+        const li = document.createElement("li");
+        li.textContent = user.Nickname;
+        li.dataset.userId = user.Id;
+
+        // Add unread badge if there are unread messages
+        if (unreadCounts[user.Id] && unreadCounts[user.Id] > 0) {
+          const badge = document.createElement("span");
+          badge.className = "unread-badge";
+          badge.textContent = unreadCounts[user.Id];
+          li.appendChild(badge);
         }
-      
-        // Clear existing users to prevent duplicates
-        online_users.innerHTML = '';
-      
-        data.users?.forEach((user) => {
-          const li = document.createElement("li");
-          li.textContent = user.Nickname;
-          li.dataset.userId = user.Id;
-      
-          // Add unread badge if there are unread messages
-          if (unreadCounts[user.Id] && unreadCounts[user.Id] > 0) {
-            const badge = document.createElement("span");
-            badge.className = "unread-badge";
-            badge.textContent = unreadCounts[user.Id];
-            li.appendChild(badge);
-          }
-      
-          li.addEventListener("click", () => {
-            // First establish connection and create the UI
-            showChatInterface(user);
-      
-            setupEventListeners();
-      
-            // Then select the user immediately
-            selectUser(user);
-            
-            // After selecting user, fetch unread counts
-            fetchUnreadCounts();
-            fetchMessages(user.Id)
-          });
-      
-          if (currentChatUser && currentChatUser.Id === user.Id) {
-            li.classList.add("active");
-          }
-      
-          online_users.appendChild(li);
+
+        li.addEventListener("click", () => {
+          // First establish connection and create the UI
+          showChatInterface(user);
+
+          setupEventListeners();
+
+          // Then select the user immediately
+          selectUser(user);
+
+          // After selecting user, fetch unread counts
+          fetchUnreadCounts();
+          fetchMessages(user.Id)
         });
-      
-      
+
+        if (currentChatUser && currentChatUser.Id === user.Id) {
+          li.classList.add("active");
+        }
+
+        online_users.appendChild(li);
+      });
+
+
       let name = document.getElementById("user_name");
       let email = document.getElementById("user_email");
       name.textContent = data.user.Nickname;
