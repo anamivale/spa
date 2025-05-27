@@ -775,3 +775,40 @@ function getSessionIdFromCookies() {
   const match = document.cookie.match(/session_id="?([a-f0-9\-]+)"?/i);
   return match ? match[1] : null;
 }
+
+
+
+
+
+export function clearChatState() {
+  // Reset chat user
+  currentChatUser = null;
+  
+  // Remove active class from all users
+  const userElements = document.querySelectorAll("#online-users li");
+  userElements.forEach((li) => {
+    li.classList.remove("active");
+  });
+  
+  // Reset pagination variables
+  currentPage = 1;
+  hasMoreMessages = true;
+  lastProcessedMessageIds.clear();
+  lastLoadTime = 0;
+  
+  // Hide message input if it exists
+  const messageInput = document.getElementById("message-input");
+  if (messageInput) {
+    messageInput.classList.add("hidden");
+  }
+  
+  // Clear messages container
+  const messagesContainer = document.getElementById("messages");
+  if (messagesContainer) {
+    messagesContainer.innerHTML = "";
+  }
+  
+
+  
+  console.log("Chat state cleared");
+}
