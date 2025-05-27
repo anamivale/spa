@@ -12,7 +12,12 @@ body {
   background: linear-gradient(to bottom, #0f0c29, #302b63, #24243e);
   min-height: 100vh;
 }
-
+.auth-container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+}
 .auth {
   width: 350px;
   height: 100vh;
@@ -29,7 +34,7 @@ body {
 .signup {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: 95%;
 }
 
 #label {
@@ -140,23 +145,29 @@ button:hover {
 
 .navbar .actions {
   display: flex;
-  gap: 15px;
+  gap: 10px;
+  justify-content: center;
   align-items: center;
 }
 
-.navbar .actions button {
+.navbar .actions #logout {
   background-color: transparent;
   border: none;
   color: white;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .navbar .bell {
-  font-size: 20px;
+  font-size: 30px;
   cursor: pointer;
 }
 
+.navbar #logout:hover{
+  padding: 0 10px;
+  background-color: red;
+
+}
 /* Main layout */
 .main {
   display: flex;

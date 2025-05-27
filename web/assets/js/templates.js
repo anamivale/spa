@@ -55,6 +55,7 @@ export function feeds() {
 
 export function authTemplate() {
   return `
+  <div class= "auth-container">
   <div class="auth">
   <input type="checkbox" id="chk" aria-hidden="true" />
   <p id= "errors"></p>
@@ -89,6 +90,7 @@ export function authTemplate() {
           <button id="login">Login</button>
       </div>
   </div>
+</div>
 </div>
       `;
 }
