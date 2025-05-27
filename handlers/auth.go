@@ -7,6 +7,7 @@ import (
 	"spa/db"
 	"spa/models"
 	"spa/utils"
+	"strings"
 	"time"
 )
 
@@ -15,7 +16,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-//Login function
+// Login function
 func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
@@ -51,13 +52,14 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to create session", http.StatusInternalServerError)
 		return
 	}
+	sid := id + ":" + sessionID
 
 	// Set a session cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    id,
-		Expires:  expiration,
-		Path:     "/",
+		Name:    "session_id",
+		Value:   sid,
+		Expires: expiration,
+		Path:    "/",
 	})
 
 	json.NewEncoder(w).Encode(map[string]string{
@@ -111,13 +113,14 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	sid := id + ":" + sessionID
 
 	// Set the session cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    id,
-		Expires:  expiration,
-		Path:     "/",
+		Name:    "session_id",
+		Value:   sid,
+		Expires: expiration,
+		Path:    "/",
 	})
 
 	response := map[string]interface{}{
@@ -138,32 +141,33 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err == nil && cookie.Value != "" {
 		// Delete the session from the database
-		err := db.DeleteSession(cookie.Value)
+		ids := strings.Split(cookie.Value, ":")
+
+		err := db.DeleteSession(ids[1])
 		if err != nil {
 			fmt.Printf("Error deleting session: %v", err)
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode("error")
 			return
 		}
-		
+
 		// Get user ID from header (set by auth middleware if used)
-		
-			_, err = db.Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "off", cookie.Value)
-			if err != nil {
-				fmt.Println("Error updating user status:", err)
-			}
-		
+
+		_, err = db.Db.Exec("UPDATE users SET status = ? WHERE user_id = ?", "off", ids[0])
+		if err != nil {
+			fmt.Println("Error updating user status:", err)
+		}
+
 	}
 
 	// Clear the cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "session_id",
-		Value:    "",
-		Expires:  time.Now().Add(-time.Hour),
-		Path:     "/",
+		Name:    "session_id",
+		Value:   "",
+		Expires: time.Now().Add(-time.Hour),
+		Path:    "/",
 	})
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode("success")
 }
-
