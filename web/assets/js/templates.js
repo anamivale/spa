@@ -3,9 +3,8 @@ export function feeds() {
     
   <!-- Navbar -->
   <div class="navbar">
-    <h1>Forum</h1>
+    <h1 id = "home">Forum</h1>
     <div id ="nav-elements">
-    <div id ="home">🏠</div>
     <div class="categories-dropdown">
                     <button class="dropdown-button">Categories ▼</button>
                     <div class="dropdown-content">
