@@ -1,5 +1,5 @@
 import { Feeds } from "./feeds.js";
-import { authTemplate, feeds } from "./templates.js";
+import { authTemplate } from "./templates.js";
 
 // Add session monitoring functionality
 let sessionCheckInterval = null;
