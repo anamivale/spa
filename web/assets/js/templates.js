@@ -30,7 +30,7 @@ export function feeds() {
   <div class="main">
     <!-- Left Sidebar: Online Users -->
     <div class="section left" >
-      <h3>Online Users</h3>
+      <h3>Users</h3>
       <ul id="online-users">
         
       </ul>
