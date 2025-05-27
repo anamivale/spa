@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"spa/db"
+	"strings"
 	"time"
 )
 
@@ -22,7 +23,9 @@ func SessionCheckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate the session
-	_, valid, err := db.ValidateSession(cookie.Value)
+	ids := strings.Split(cookie.Value, ":")
+
+	_, valid, err := db.ValidateSession(ids[1])
 	if err != nil {
 
 		w.Header().Set("Content-Type", "application/json")
@@ -36,10 +39,10 @@ func SessionCheckHandler(w http.ResponseWriter, r *http.Request) {
 	if !valid {
 		// If session is invalid, clear the cookie
 		http.SetCookie(w, &http.Cookie{
-			Name:     "session_id",
-			Value:    "",
-			Expires:  time.Now().Add(-time.Hour),
-			Path:     "/",
+			Name:    "session_id",
+			Value:   "",
+			Expires: time.Now().Add(-time.Hour),
+			Path:    "/",
 		})
 
 		w.Header().Set("Content-Type", "application/json")
@@ -68,14 +71,16 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Validate session
-		userID, valid, err := db.ValidateSession(cookie.Value)
+			ids := strings.Split(cookie.Value, ":")
+
+		userID, valid, err := db.ValidateSession(ids[1])
 		if err != nil || !valid {
 			// Clear invalid cookie
 			http.SetCookie(w, &http.Cookie{
-				Name:     "session_id",
-				Value:    "",
-				Expires:  time.Now().Add(-time.Hour),
-				Path:     "/",
+				Name:    "session_id",
+				Value:   "",
+				Expires: time.Now().Add(-time.Hour),
+				Path:    "/",
 			})
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
