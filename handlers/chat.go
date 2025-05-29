@@ -147,6 +147,42 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
+		if msg.Type == "typing_start" {
+			// Broadcast typing status to the receiver
+			msg.SenderID = userIDStr
+			msg.Timestamp = time.Now()
+
+			mutex.Lock()
+			for client := range clients[msg.ReceiverID] {
+				err := client.WriteJSON(msg)
+				if err != nil {
+					log.Printf("error: %v", err)
+					client.Close()
+					delete(clients[msg.ReceiverID], client)
+				}
+			}
+			mutex.Unlock()
+			continue
+		}
+
+		if msg.Type == "typing_stop" {
+			// Broadcast typing stop to the receiver
+			msg.SenderID = userIDStr
+			msg.Timestamp = time.Now()
+
+			mutex.Lock()
+			for client := range clients[msg.ReceiverID] {
+				err := client.WriteJSON(msg)
+				if err != nil {
+					log.Printf("error: %v", err)
+					client.Close()
+					delete(clients[msg.ReceiverID], client)
+				}
+			}
+			mutex.Unlock()
+			continue
+		}
+
 		// Set sender ID from query parameter
 		msg.SenderID = userIDStr
 		msg.Timestamp = time.Now()

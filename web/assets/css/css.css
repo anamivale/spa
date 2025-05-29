@@ -676,6 +676,62 @@ button:hover {
   opacity: 0.6;
 }
 
+.typing-indicator {
+    background: #E5E5EA;
+    border-radius: 20px;
+    border-bottom-left-radius: 8px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    max-width: fit-content;
+    animation: typingSlideIn 0.3s ease-out;
+}
+
+.typing-text {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #999;
+    animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes typingBounce {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes typingSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 /* Responsive */
 @media (max-width: 768px) {
   .main {

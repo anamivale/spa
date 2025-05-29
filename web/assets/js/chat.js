@@ -1,5 +1,6 @@
 // Modified chat.js with improved message loading behavior
 
+import { username } from "./feeds.js";
 import { messagesUi } from "./templates.js";
 
 // Global variables
@@ -11,6 +12,10 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 let reconnectTimeout = null;
 let isManualClose = false;
+let typingTimer;
+let isTyping = false;
+let typingUsers = new Set(); // Track who is typing
+const TYPING_TIMEOUT = 3000; // 3 seconds
 
 // Pagination variables
 let currentPage = 1;
@@ -30,7 +35,11 @@ export function initChat() {
   const sessionId = ids[0]
   if (!sessionId) return;
 
-  currentUser = { id: sessionId };
+  currentUser = { 
+    id: sessionId,
+    name: username
+  };
+console.log(currentUser.name);
 
   connectWebSocket();
   fetchUnreadCounts();
@@ -48,6 +57,7 @@ export function setupEventListeners() {
   // Check if elements exist before adding event listeners
   if (sendButton && messageText) {
     sendButton.addEventListener("click", sendMessage);
+    messageText.addEventListener("input", handleTyping);
     messageText.addEventListener("keypress", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -271,9 +281,20 @@ function handleNewMessage(message) {
   // Handle online users update
   if (message.type === "online_users" && message.users) {
     updateOnlineUsersList(message.users);
+    return
+  }
+  if (message.type === "typing_start") {
+    if (currentChatUser && message.sender_id === currentChatUser.Id) {
+      showTypingIndicator(currentUser.name);
+    }
     return;
   }
-
+  if (message.type === "typing_stop") {
+    if (currentChatUser && message.sender_id === currentChatUser.Id) {
+      hideTypingIndicator(currentUser.name);
+    }
+    return;
+  }
   // Handle regular chat message
   if (message.content) {
     // Check if we've already processed this message (by ID)
@@ -384,7 +405,14 @@ function sendMessage() {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
     messageText.value = "";
-
+    isTyping = false;
+    clearTimeout(typingTimer);
+   if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'typing_stop',
+            receiver_id: currentChatUser.Id
+        }));
+    }
     // Scroll to bottom only when sending a message
     scrollToBottom();
   } else {
@@ -783,32 +811,113 @@ function getSessionIdFromCookies() {
 export function clearChatState() {
   // Reset chat user
   currentChatUser = null;
-  
+
   // Remove active class from all users
   const userElements = document.querySelectorAll("#online-users li");
   userElements.forEach((li) => {
     li.classList.remove("active");
   });
-  
+
   // Reset pagination variables
   currentPage = 1;
   hasMoreMessages = true;
   lastProcessedMessageIds.clear();
   lastLoadTime = 0;
-  
+
   // Hide message input if it exists
   const messageInput = document.getElementById("message-input");
   if (messageInput) {
     messageInput.classList.add("hidden");
   }
-  
+
   // Clear messages container
   const messagesContainer = document.getElementById("messages");
   if (messagesContainer) {
     messagesContainer.innerHTML = "";
   }
-  
 
-  
+
+
   console.log("Chat state cleared");
+}
+
+
+function showTypingIndicator(userName) {
+  if (!currentChatUser) return;
+
+  const messagesContainer = document.getElementById("messages");
+  if (!messagesContainer) return;
+
+  // Add user to typing set
+  typingUsers.add(userName);
+
+  // Remove existing typing indicator
+  hideTypingIndicator();
+
+  // Create new typing indicator
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'typing-indicator';
+  typingDiv.id = 'typing-indicator';
+  typingDiv.innerHTML = `
+        <div class="typing-text">${userName} is typing...</div>
+        <div class="typing-dots">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+    `;
+
+  messagesContainer.appendChild(typingDiv);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+
+function hideTypingIndicator(userName = null) {
+  if (userName) {
+    typingUsers.delete(userName);
+  } else {
+    typingUsers.clear();
+  }
+
+  const typingIndicator = document.getElementById('typing-indicator');
+  if (typingIndicator && typingUsers.size === 0) {
+    typingIndicator.remove();
+  }
+}
+
+
+function handleTyping() {
+  if (!currentChatUser) return;
+
+  const messageText = document.getElementById("message-text");
+  if (!messageText) return;
+
+  const isCurrentlyTyping = messageText.value.trim().length > 0;
+
+  if (isCurrentlyTyping && !isTyping) {
+    // User started typing
+    isTyping = true;
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: 'typing_start',
+        receiver_id: currentChatUser.Id
+      }));
+    }
+  }
+
+  // Clear existing timer
+  clearTimeout(typingTimer);
+
+  // Set new timer to stop typing indicator
+  typingTimer = setTimeout(() => {
+    if (isTyping) {
+      isTyping = false;
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+          type: 'typing_stop',
+          receiver_id: currentChatUser.Id
+        }));
+      }
+    }
+  }, TYPING_TIMEOUT);
 }
