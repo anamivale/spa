@@ -85,6 +85,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	isVAlid := utils.ValidatePassword(RegisterData.Password)
+
+	if !isVAlid {
+		response := map[string]interface{}{
+			"type": "Pasoword should contain uppercase, lowercase, numbers and special symbols",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
 	var id = utils.GenerateUUid()
 	err = db.InsertIntoUsersTable(id, RegisterData)
