@@ -5,6 +5,8 @@ import { createPost } from "./post.js";
 import { reactToComment, reactToPost } from "./reactions.js";
 import { createPostForm, feeds } from "./templates.js";
 
+ export let username
+
 export function Feeds() {
   let body = document.getElementById("app");
   body.innerHTML = feeds();
@@ -18,12 +20,10 @@ export function Feeds() {
       url = "/feeds?cat=" + el.textContent.trim()
       getPosts(url);
 
-      console.log(url);
 
     })
 
   })
-  console.log(url);
 
   initChat()
 
@@ -290,6 +290,7 @@ export async function getPosts(url) {
 
       let name = document.getElementById("user_name");
       let email = document.getElementById("user_email");
+       username = data.user.Nickname
       name.textContent = data.user.Nickname;
       email.textContent = data.user.Email;
     }
