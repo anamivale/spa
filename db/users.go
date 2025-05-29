@@ -88,7 +88,7 @@ func GetPersonalizedUsersList(userID string) ([]models.User, error) {
 	}
 
 	// Sort by online status first (online users first), then alphabetically by nickname
-	otherUsersQuery += " ORDER BY CASE WHEN status = 'on' THEN 0 ELSE 1 END, nickname ASC"
+	otherUsersQuery += " ORDER BY nickname ASC"
 
 	otherRows, err := Db.Query(otherUsersQuery, args...)
 	if err != nil {
