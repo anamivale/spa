@@ -1,7 +1,7 @@
 // Modified chat.js with improved message loading behavior
 
-import { username } from "./feeds.js";
 import { messagesUi } from "./templates.js";
+let username
 
 // Global variables
 let currentUser = null;
@@ -35,11 +35,10 @@ export function initChat() {
   const sessionId = ids[0]
   if (!sessionId) return;
 
-  currentUser = { 
+  currentUser = {
     id: sessionId,
-    name: username
   };
-console.log(currentUser.name);
+  console.log(currentUser.name);
 
   connectWebSocket();
   fetchUnreadCounts();
@@ -96,7 +95,7 @@ export function showChatInterface(user) {
 // Select a user to chat with
 export function selectUser(user) {
   currentChatUser = user;
-
+  username = user.Nickname
   // Reset pagination state
   currentPage = 1;
   hasMoreMessages = true;
@@ -285,13 +284,13 @@ function handleNewMessage(message) {
   }
   if (message.type === "typing_start") {
     if (currentChatUser && message.sender_id === currentChatUser.Id) {
-      showTypingIndicator(currentUser.name);
+      showTypingIndicator(username);
     }
     return;
   }
   if (message.type === "typing_stop") {
     if (currentChatUser && message.sender_id === currentChatUser.Id) {
-      hideTypingIndicator(currentUser.name);
+      hideTypingIndicator(username);
     }
     return;
   }
@@ -407,11 +406,11 @@ function sendMessage() {
     messageText.value = "";
     isTyping = false;
     clearTimeout(typingTimer);
-   if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'typing_stop',
-            receiver_id: currentChatUser.Id
-        }));
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify({
+        type: 'typing_stop',
+        receiver_id: currentChatUser.Id
+      }));
     }
     // Scroll to bottom only when sending a message
     scrollToBottom();
@@ -852,14 +851,14 @@ function showTypingIndicator(userName) {
   typingUsers.add(userName);
 
   // Remove existing typing indicator
-  hideTypingIndicator();
+  hideTypingIndicator(userName);
 
   // Create new typing indicator
   const typingDiv = document.createElement('div');
   typingDiv.className = 'typing-indicator';
   typingDiv.id = 'typing-indicator';
   typingDiv.innerHTML = `
-        <div class="typing-text">typing...</div>
+        <div class="typing-text"> ${userName} typing...</div>
         <div class="typing-dots">
             <div class="typing-dot"></div>
             <div class="typing-dot"></div>

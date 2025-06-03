@@ -5,7 +5,6 @@ import { createPost } from "./post.js";
 import { reactToComment, reactToPost } from "./reactions.js";
 import { createPostForm, feeds } from "./templates.js";
 
-export let username
 
 export function Feeds() {
   let body = document.getElementById("app");
@@ -311,7 +310,7 @@ export async function getPosts(url) {
       let age = document.getElementById("profile-age");
       let fullname = document.getElementById("profile-fullname");
       let gender = document.getElementById("profile-gender");
-
+      
       name.textContent = data.user.Nickname;
       email.textContent = data.user.Email;
       age.textContent = data.user.Age
