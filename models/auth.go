@@ -23,4 +23,8 @@ type User struct {
 	Status          string
 	Email           string
 	LastInteraction time.Time `json:"LastInteraction,omitempty"`
+	Fname           string
+	Lname           string
+	Gender          string
+	Age             string
 }
