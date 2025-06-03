@@ -859,7 +859,7 @@ function showTypingIndicator(userName) {
   typingDiv.className = 'typing-indicator';
   typingDiv.id = 'typing-indicator';
   typingDiv.innerHTML = `
-        <div class="typing-text">${userName} is typing...</div>
+        <div class="typing-text">typing...</div>
         <div class="typing-dots">
             <div class="typing-dot"></div>
             <div class="typing-dot"></div>
