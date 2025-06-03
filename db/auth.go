@@ -134,8 +134,8 @@ func GetUser(r *http.Request) (*models.User, error) {
 
 	// Step 3: Query the users table to get user details using the user_id
 	var user models.User
-	query := "SELECT nickname, email FROM users WHERE user_id = ?"
-	err = Db.QueryRow(query, userID).Scan(&user.Nickname, &user.Email)
+	query := "SELECT nickname, email, age, fname,lname, gender FROM users WHERE user_id = ?"
+	err = Db.QueryRow(query, userID).Scan(&user.Nickname, &user.Email, &user.Age, &user.Fname, &user.Lname, &user.Gender)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// User not found for the user_id
@@ -161,9 +161,8 @@ func GetPostUser(id string) string {
 	return name
 }
 
-
 func GetUserFromId(id string) string {
-	var  Nickname string
+	var Nickname string
 	query := "SELECT nickname FROM users WHERE user_id = ?"
 	err = Db.QueryRow(query, id).Scan(&Nickname)
 	if err != nil {
