@@ -28,7 +28,6 @@ export function feeds() {
     <div class="main">
       <!-- Left Sidebar: Online Users -->
       <div class="section left">
-        <hr />
         <div class="cat">
           <h3>Categories</h3>
           <div>

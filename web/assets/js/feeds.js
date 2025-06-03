@@ -5,7 +5,7 @@ import { createPost } from "./post.js";
 import { reactToComment, reactToPost } from "./reactions.js";
 import { createPostForm, feeds } from "./templates.js";
 
- export let username
+export let username
 
 export function Feeds() {
   let body = document.getElementById("app");
@@ -14,6 +14,24 @@ export function Feeds() {
   getPosts(url);
 
 
+  const userIcon = document.getElementById("user-icon");
+  const profilePopup = document.getElementById("profile-popup");
+
+  if (userIcon && profilePopup) {
+    userIcon.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profilePopup.classList.toggle('hidden');
+
+    });
+
+    profilePopup.addEventListener('click', (e) => {
+      e.stopPropagation(); // ✅ prevent hiding when clicking inside popup
+    });
+
+    document.addEventListener('click', () => {
+      profilePopup.classList.add('hidden');
+    });
+  }
   const categoriesSort = Array.from(document.querySelectorAll(".cat-el"))
   categoriesSort.forEach(el => {
     el.addEventListener("click", () => {
@@ -32,7 +50,7 @@ export function Feeds() {
   });
 
   document.getElementById("home").addEventListener("click", () => {
-   clearChatState()
+    clearChatState()
     Feeds()
   })
 
@@ -288,11 +306,18 @@ export async function getPosts(url) {
       });
 
 
-      let name = document.getElementById("user_name");
-      let email = document.getElementById("user_email");
-       username = data.user.Nickname
+      let name = document.getElementById("profile-nickname");
+      let email = document.getElementById("profile-email");
+      let age = document.getElementById("profile-age");
+      let fullname = document.getElementById("profile-fullname");
+      let gender = document.getElementById("profile-gender");
+
       name.textContent = data.user.Nickname;
       email.textContent = data.user.Email;
+      age.textContent = data.user.Age
+      fullname.textContent = `${data.user.Fname} ${data.user.Lname}`
+      gender.textContent = data.user.Gender
+
     }
   } catch (err) {
     console.error("Fetch error:", err.message);
