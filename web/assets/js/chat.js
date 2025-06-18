@@ -1,5 +1,3 @@
-// Modified chat.js with improved message loading behavior
-
 import { messagesUi } from "./templates.js";
 let username
 
