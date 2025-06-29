@@ -63,33 +63,124 @@ export function authTemplate() {
     <div class="auth-container">
       <div class="auth">
         <input type="checkbox" id="chk" aria-hidden="true" />
-        <p id="errors"></p>
+        <div id="errors"></div>
 
         <div class="signup">
-          <div>
+          <form id="signup-form" novalidate>
             <label for="chk" id="label" aria-hidden="true">Sign up</label>
-            <input type="text" id="nickname" placeholder="Nickname" required />
-            <input type="number" id="age" placeholder="Age" required />
+
+            <input
+              type="text"
+              id="nickname"
+              placeholder="Username"
+              required
+              minlength="3"
+              maxlength="20"
+              pattern="[a-zA-Z0-9_]+"
+              title="Username must be 3-20 characters, letters, numbers, and underscores only"
+            />
+
+            <input
+              type="number"
+              id="age"
+              placeholder="Age"
+              required
+              min="16"
+              max="100"
+              title="Age must be between 16 and 100"
+            />
+
             <div id="gender" class="gender">
-              <label><input type="radio" name="gender" value="female" /> Female</label>
-              <label><input type="radio" name="gender" value="male" /> Male</label>
+              <label>
+                <input type="radio" name="gender" value="female" required />
+                Female
+              </label>
+              <label>
+                <input type="radio" name="gender" value="male" required />
+                Male
+              </label>
+              <label>
+                <input type="radio" name="gender" value="other" required />
+                Other
+              </label>
             </div>
-            <input type="text" id="fname" placeholder="First Name" required />
-            <input type="text" id="lname" placeholder="Last Name" required />
-            <input type="email" id="email" placeholder="Email" required />
-            <input type="password" id="pswd" placeholder="Password" required />
-            <input type="password" id="cpswd" placeholder="Confirm Password" required />
-            <button id="signup">Sign up</button>
-          </div>
+
+            <input
+              type="text"
+              id="fname"
+              placeholder="First Name"
+              required
+              minlength="2"
+              maxlength="50"
+              pattern="[a-zA-Z\\s]+"
+              title="First name must be 2-50 characters, letters only"
+            />
+
+            <input
+              type="text"
+              id="lname"
+              placeholder="Last Name"
+              required
+              minlength="2"
+              maxlength="50"
+              pattern="[a-zA-Z\\s]+"
+              title="Last name must be 2-50 characters, letters only"
+            />
+
+            <input
+              type="email"
+              id="email"
+              placeholder="Email"
+              required
+              title="Please enter a valid email address"
+            />
+
+            <input
+              type="password"
+              id="pswd"
+              placeholder="Password"
+              required
+              minlength="6"
+              title="Password must be at least 6 characters long"
+            />
+
+            <input
+              type="password"
+              id="cpswd"
+              placeholder="Confirm Password"
+              required
+              minlength="6"
+              title="Please confirm your password"
+            />
+
+            <button type="button" id="signup">Sign up</button>
+          </form>
         </div>
 
         <div class="login">
-          <div>
+          <form id="login-form" novalidate>
             <label for="chk" aria-hidden="true" id="label">Login</label>
-            <input type="text" id="username" placeholder="Email/Nickname" class="username" required />
-            <input type="password" id="password" name="pswd" placeholder="Password" class="password" required />
-            <button id="login">Login</button>
-          </div>
+
+            <input
+              type="text"
+              id="username"
+              placeholder="Email or Username"
+              class="username"
+              required
+              title="Enter your email or username"
+            />
+
+            <input
+              type="password"
+              id="password"
+              placeholder="Password"
+              class="password"
+              required
+              title="Enter your password"
+            />
+
+            <button type="button" id="login">Login</button>
+          </form>
         </div>
       </div>
     </div>
@@ -128,8 +219,17 @@ export function messagesUi() {
     <div class="message-area" id="sms">
       <div id="messages"></div>
       <div id="message-input" class="hidden">
-        <textarea id="message-text" placeholder="Type your message..."></textarea>
-        <button id="send-button" class="btn">Send</button>
+        <div class="message-input-container">
+          <div class="input-row">
+            <textarea id="message-text" placeholder="Type your message..."></textarea>
+            <div class="input-actions">
+              <button id="image-button" class="btn-icon" title="Send Image">📷</button>
+              <button id="send-button" class="btn">Send</button>
+            </div>
+          </div>
+          <input type="file" id="image-input" accept="image/*" style="display: none;">
+          <div id="image-preview" class="image-preview hidden"></div>
+        </div>
       </div>
     </div>
   `;
