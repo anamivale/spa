@@ -128,8 +128,17 @@ export async function getPosts(url) {
         comment.textContent = `comments: ${element.CommentCount}`;
         const cookieValue = getCookie("session_id");
 
-        const ids = cookieValue.split(":")
-        const sessionId = ids[0]
+        if (!cookieValue) {
+          console.error("No session cookie found");
+          return;
+        }
+
+        const ids = cookieValue.split(":");
+        if (ids.length !== 2) {
+          console.error("Invalid session cookie format");
+          return;
+        }
+        const sessionId = ids[0];
 
         likes.addEventListener("click", async () => {
           const reaction = await reactToPost(sessionId, element.PostID, "like");
@@ -166,88 +175,193 @@ export async function getPosts(url) {
             let commentSection = document.createElement("div");
             commentSection.classList.add("comment-section");
 
-            let h1 = document.createElement("h1");
-            h1.textContent = "Add a comment";
-            commentSection.appendChild(h1);
+            // Header
+            let header = document.createElement("div");
+            header.className = "comment-section-header";
 
-            //form
+            let headerTitle = document.createElement("h3");
+            headerTitle.textContent = `Comments (${element.CommentCount})`;
+            headerTitle.className = "comment-section-title";
+
+            let toggleButton = document.createElement("button");
+            toggleButton.textContent = "×";
+            toggleButton.className = "comment-close-btn";
+            toggleButton.addEventListener("click", () => {
+              commentSection.remove();
+            });
+
+            header.appendChild(headerTitle);
+            header.appendChild(toggleButton);
+            commentSection.appendChild(header);
+
+            // Comment form
             let commentForm = document.createElement("div");
             commentForm.className = "comment-form";
 
-            let textarea = document.createElement("textarea");
-            textarea.id = "comment_content"
-            textarea.placeholder = "Add a comment...";
+            let formHeader = document.createElement("div");
+            formHeader.className = "comment-form-header";
+            formHeader.innerHTML = '<span class="comment-form-title">💬 Add your comment</span>';
 
+            let textarea = document.createElement("textarea");
+            textarea.id = "comment_content";
+            textarea.placeholder = "What are your thoughts?";
+            textarea.rows = 3;
+
+            let formActions = document.createElement("div");
+            formActions.className = "comment-form-actions";
+
+            let charCount = document.createElement("span");
+            charCount.className = "char-count";
+            charCount.textContent = "0/500";
 
             let submitButton = document.createElement("button");
-            submitButton.textContent = "comment"
+            submitButton.textContent = "Post Comment";
+            submitButton.className = "comment-submit-btn";
+            submitButton.disabled = true;
 
-            commentForm.appendChild(textarea)
-            commentForm.appendChild(submitButton)
+            // Character count and validation
+            textarea.addEventListener("input", () => {
+              const value = textarea.value;
+              const length = value.length;
+              const trimmedValue = value.trim();
+
+              charCount.textContent = `${length}/500`;
+
+              if (length > 500) {
+                charCount.style.color = "#ff4444";
+                submitButton.disabled = true;
+              } else if (trimmedValue.length > 0) {
+                charCount.style.color = "#666";
+                submitButton.disabled = false;
+              } else {
+                charCount.style.color = "#666";
+                submitButton.disabled = true;
+              }
+            });
+
+            formActions.appendChild(charCount);
+            formActions.appendChild(submitButton);
+
+            commentForm.appendChild(formHeader);
+            commentForm.appendChild(textarea);
+            commentForm.appendChild(formActions);
             commentSection.appendChild(commentForm);
 
-            submitButton.addEventListener("click", () => {
-              createComment(element.PostID)
-            })
+            submitButton.addEventListener("click", async () => {
+              const content = textarea.value.trim();
+              if (content && content.length <= 500) {
+                submitButton.disabled = true;
+                submitButton.textContent = "Posting...";
 
-            //comments 
-            element.Comments?.forEach(el => {
-              let comments = document.createElement("div")
-              comments.className = "comment";
+                try {
+                  await createComment(element.PostID);
+                  textarea.value = "";
+                  charCount.textContent = "0/500";
+                  submitButton.textContent = "Post Comment";
+                  // Refresh the post to show new comment
+                  setTimeout(() => {
+                    getPosts("/feeds");
+                  }, 500);
+                } catch (error) {
+                  console.error("Error posting comment:", error);
+                  submitButton.textContent = "Post Comment";
+                  submitButton.disabled = false;
+                }
+              }
+            });
 
-              let userInfo = document.createElement("div");
-              userInfo.className = "comment-header";
+            // Comments list
+            let commentsContainer = document.createElement("div");
+            commentsContainer.className = "comments-container";
 
-              let uname = document.createElement("p")
-              uname.className = "comment-username";
-              uname.textContent = el.Username
+            if (element.Comments && element.Comments.length > 0) {
+              element.Comments.forEach(el => {
+                let commentDiv = document.createElement("div");
+                commentDiv.className = "comment";
 
-              let time = document.createElement("span");
-              time.className = "comment-time";
-              time.textContent = new Date(el.CreatedAt).toLocaleDateString();
+                // User avatar and info
+                let userInfo = document.createElement("div");
+                userInfo.className = "comment-header";
 
-              userInfo.appendChild(uname);
-              userInfo.appendChild(time);
+                let avatar = document.createElement("div");
+                avatar.className = "comment-avatar";
+                avatar.textContent = el.Username.charAt(0).toUpperCase();
 
-              let content = document.createElement("div")
-              content.className = "comment-content";
-              content.textContent = el.content
+                let userDetails = document.createElement("div");
+                userDetails.className = "comment-user-details";
 
-              comments.appendChild(userInfo);
-              comments.appendChild(content)
-              let reaction = document.createElement("div");
-              reaction.className = "reactions";
+                let username = document.createElement("span");
+                username.className = "comment-username";
+                username.textContent = el.Username;
 
-              let likes = document.createElement("button");
-              let dislikes = document.createElement("button");
+                let time = document.createElement("span");
+                time.className = "comment-time";
+                time.textContent = new Date(el.CreatedAt).toLocaleString();
+
+                userDetails.appendChild(username);
+                userDetails.appendChild(time);
+                userInfo.appendChild(avatar);
+                userInfo.appendChild(userDetails);
+
+                let content = document.createElement("div");
+                content.className = "comment-content";
+                content.textContent = el.content;
+
+                commentDiv.appendChild(userInfo);
+                commentDiv.appendChild(content);
+                // Comment reactions
+                let reactions = document.createElement("div");
+                reactions.className = "comment-reactions";
+
+                let likeBtn = document.createElement("button");
+                let dislikeBtn = document.createElement("button");
+
+                likeBtn.className = "comment-reaction-btn like-btn";
+                dislikeBtn.className = "comment-reaction-btn dislike-btn";
+
+                likeBtn.innerHTML = `<span class="reaction-icon">👍</span> <span class="reaction-count">${el.LikeCount}</span>`;
+                dislikeBtn.innerHTML = `<span class="reaction-icon">👎</span> <span class="reaction-count">${el.DislikeCount}</span>`;
+
+                likeBtn.addEventListener("click", async () => {
+                  likeBtn.disabled = true;
+                  try {
+                    const reaction = await reactToComment(sessionId, el.CommentID, "like");
+                    likeBtn.innerHTML = `<span class="reaction-icon">👍</span> <span class="reaction-count">${reaction.likes}</span>`;
+                    dislikeBtn.innerHTML = `<span class="reaction-icon">👎</span> <span class="reaction-count">${reaction.dislikes}</span>`;
+                  } catch (error) {
+                    console.error("Error liking comment:", error);
+                  }
+                  likeBtn.disabled = false;
+                });
+
+                dislikeBtn.addEventListener("click", async () => {
+                  dislikeBtn.disabled = true;
+                  try {
+                    const reaction = await reactToComment(sessionId, el.CommentID, "dislike");
+                    likeBtn.innerHTML = `<span class="reaction-icon">👍</span> <span class="reaction-count">${reaction.likes}</span>`;
+                    dislikeBtn.innerHTML = `<span class="reaction-icon">👎</span> <span class="reaction-count">${reaction.dislikes}</span>`;
+                  } catch (error) {
+                    console.error("Error disliking comment:", error);
+                  }
+                  dislikeBtn.disabled = false;
+                });
+
+                reactions.appendChild(likeBtn);
+                reactions.appendChild(dislikeBtn);
+                commentDiv.appendChild(reactions);
+                commentsContainer.appendChild(commentDiv);
 
 
-              reaction.appendChild(likes);
-              reaction.appendChild(dislikes);
 
-              likes.textContent = `👍 ${el.LikeCount}`;
+            });
+            } else {
+              let noComments = document.createElement("div");
+              noComments.className = "no-comments";
+              noComments.innerHTML = '<p>💭 No comments yet. Be the first to share your thoughts!</p>';
+              commentsContainer.appendChild(noComments);
+            }
 
-              dislikes.textContent = `👎 ${el.DislikeCount}`;
-
-              likes.addEventListener("click", async () => {
-                const creaction = await reactToComment(sessionId, el.CommentID, "like");
-
-                likes.textContent = `👍 ${creaction.likes}`;
-                dislikes.textContent = `👎 ${creaction.dislikes}`;
-              });
-
-              dislikes.addEventListener("click", async () => {
-                const creaction = await reactToComment(sessionId, el.CommentID, "dislike");
-                likes.textContent = `👍 ${creaction.likes}`;
-                dislikes.textContent = `👎 ${creaction.dislikes}`;
-              });
-
-              comments.appendChild(reaction)
-              commentSection.appendChild(comments)
-
-
-
-            })
+            commentSection.appendChild(commentsContainer);
             elementUi.appendChild(commentSection);
           }
         });
