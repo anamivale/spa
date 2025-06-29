@@ -8,6 +8,9 @@ import (
 )
 
 func main() {
+
+	mime.AddExtensionType(".js", "application/javascript")
+	mime.AddExtensionType(".css", "text/css") 
 	// Initialize the database
 	db.Init()
 
