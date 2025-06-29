@@ -1,16 +1,9 @@
-import { loadAuthView } from "./auth.js";
+import { Logout as AuthLogout } from "./auth.js";
 import { disconnectWebSocket } from "./chat.js";
 
-export function Logout() {
-    fetch("/logout", { method: "POST" })
-        .then(res => {
-            // Add WebSocket cleanup
-           
-
-            loadAuthView()
-            disconnectWebSocket()
-
-            
-        })
-        .catch(err => console.log(err.message));
+export async function Logout() {
+    // Use the improved logout function from auth.js
+    await AuthLogout();
+    // Add WebSocket cleanup
+    disconnectWebSocket();
 }
