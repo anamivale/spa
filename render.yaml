@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: spa-forum
+    env: go
+    buildCommand: go build -o app cmd/main.go
+    startCommand: ./main
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        fromService:
+          type: web
+          name: forum
+          property: port
+      - key: ENABLE_HTTPS
+        value: true
+    healthCheckPath: /
