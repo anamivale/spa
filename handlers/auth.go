@@ -54,14 +54,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	sid := id + ":" + sessionID
 
-	// Set a session cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_id",
-		Value:   sid,
-		Secure:   true,
-		Expires: expiration,
-		Path:    "/",
-	})
+	// Set a secure session cookie
+	utils.SetSecureCookie(w, "session_id", sid, 24*time.Hour)
 
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": "Login successful",
@@ -126,14 +120,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	sid := id + ":" + sessionID
 
-	// Set the session cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_id",
-		Value:   sid,
-		Secure:   true,
-		Expires: expiration,
-		Path:    "/",
-	})
+	// Set the secure session cookie
+	utils.SetSecureCookie(w, "session_id", sid, 24*time.Hour)
 
 	response := map[string]interface{}{
 		"type": "success",
@@ -172,13 +160,8 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// Clear the cookie
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_id",
-		Value:   "",
-		Expires: time.Now().Add(-time.Hour),
-		Path:    "/",
-	})
+	// Clear the cookie securely
+	utils.DeleteSecureCookie(w, "session_id")
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode("success")
