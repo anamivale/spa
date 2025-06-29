@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -188,10 +189,19 @@ func HandleConnections(w http.ResponseWriter, r *http.Request) {
 		msg.Timestamp = time.Now()
 		msg.Read = false
 
+		// Set default message type if not specified
+		if msg.MessageType == "" {
+			if msg.ImageURL != "" || msg.ImageContent != "" {
+				msg.MessageType = "image"
+			} else {
+				msg.MessageType = "text"
+			}
+		}
+
 		// Save message to database
 		result, err := db.Db.Exec(
-			"INSERT INTO messages (sender_id, receiver_id, content, timestamp, read) VALUES (?, ?, ?, ?, ?)",
-			msg.SenderID, msg.ReceiverID, msg.Content, time.Now(), msg.Read,
+			"INSERT INTO messages (sender_id, receiver_id, content, image_url, image_content, message_type, timestamp, read) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+			msg.SenderID, msg.ReceiverID, msg.Content, msg.ImageURL, msg.ImageContent, msg.MessageType, time.Now(), msg.Read,
 		)
 		if err != nil {
 			log.Println("Error saving message:", err)
@@ -298,7 +308,7 @@ func HandleMessage(w http.ResponseWriter, r *http.Request) {
 
 	// Query with pagination
 	rows, err := db.Db.Query(`
-		SELECT id, sender_id, receiver_id, content, timestamp, read
+		SELECT id, sender_id, receiver_id, content, image_url, image_content, message_type, timestamp, read
 		FROM messages
 		WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
 		ORDER BY timestamp DESC
@@ -314,10 +324,25 @@ func HandleMessage(w http.ResponseWriter, r *http.Request) {
 	var messages []models.Message
 	for rows.Next() {
 		var msg models.Message
-		if err := rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &msg.Timestamp, &msg.Read); err != nil {
+		var imageURL, imageContent, messageType sql.NullString
+		if err := rows.Scan(&msg.ID, &msg.SenderID, &msg.ReceiverID, &msg.Content, &imageURL, &imageContent, &messageType, &msg.Timestamp, &msg.Read); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		// Handle nullable fields
+		if imageURL.Valid {
+			msg.ImageURL = imageURL.String
+		}
+		if imageContent.Valid {
+			msg.ImageContent = imageContent.String
+		}
+		if messageType.Valid {
+			msg.MessageType = messageType.String
+		} else {
+			msg.MessageType = "text" // Default to text for existing messages
+		}
+
 		msg.Name = db.GetUserFromId(msg.SenderID)
 		messages = append(messages, msg)
 	}
