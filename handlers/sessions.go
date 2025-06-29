@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"spa/db"
+	"spa/utils"
 	"strings"
 	"time"
 )
@@ -45,14 +46,8 @@ func SessionCheckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !valid {
-		// If session is invalid, clear the cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:    "session_id",
-			Value:   "",
-			Secure:   true,
-			Expires: time.Now().Add(-time.Hour),
-			Path:    "/",
-		})
+		// If session is invalid, clear the cookie securely
+		utils.DeleteSecureCookie(w, "session_id")
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
@@ -84,14 +79,8 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		userID, valid, err := db.ValidateSession(ids[1])
 		if err != nil || !valid {
-			// Clear invalid cookie
-			http.SetCookie(w, &http.Cookie{
-				Name:    "session_id",
-				Value:   "",
-				Expires: time.Now().Add(-time.Hour),
-				Path:    "/",
-				Secure:   true,
-			})
+			// Clear invalid cookie securely
+			utils.DeleteSecureCookie(w, "session_id")
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
