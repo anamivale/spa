@@ -89,7 +89,36 @@ This forum is a **Single Page Application (SPA)**:
 
 ##  Setup Instructions
 
+### Local Development
+
 ```bash
-git clone https://github.com/a-j-sheilla/real-time-forum.git
-cd real-time-forum
+git clone https://github.com/anamivale/spa
+cd spa
 go run cmd/main.go
+```
+
+### Production Deployment on Render
+
+1. **Environment Variables**: Set these in your Render dashboard:
+   - `ENVIRONMENT=production`
+   - `PORT` (automatically set by Render)
+
+2. **Security Features**:
+   - ✅ CSRF protection on all state-changing requests
+   - ✅ Environment-based configuration
+   - ✅ Session management with automatic cleanup
+
+3. **Deploy**:
+   - Connect your GitHub repository to Render
+   - Use the included `render.yaml` configuration
+   - Render will automatically build and deploy
+
+### Security Improvements Made
+
+- **Cookie Security**: All cookies now use `HttpOnly`, `Secure` (in production), and `SameSite=Strict` flags
+- **CSRF Protection**: All POST requests require CSRF tokens
+- **Environment Detection**: Different security settings for development vs production
+- **Input Validation**: Enhanced client-side and server-side validation
+- **Error Handling**: Improved error messages and user feedback
+
+#
