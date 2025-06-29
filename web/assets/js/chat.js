@@ -29,8 +29,13 @@ export function initChat() {
   const cookieValue = getSessionIdFromCookies();
   if (!cookieValue) return;
 
-  const ids = cookieValue.split(":")
-  const sessionId = ids[0]
+  const ids = cookieValue.split(":");
+  if (ids.length !== 2) {
+    console.error("Invalid session cookie format");
+    return;
+  }
+
+  const sessionId = ids[0];
   if (!sessionId) return;
 
   currentUser = {
@@ -61,6 +66,19 @@ export function setupEventListeners() {
         sendMessage();
       }
     });
+  }
+
+  // Image upload functionality
+  const imageButton = document.getElementById("image-button");
+  const imageInput = document.getElementById("image-input");
+  const imagePreview = document.getElementById("image-preview");
+
+  if (imageButton && imageInput && imagePreview) {
+    imageButton.addEventListener("click", () => {
+      imageInput.click();
+    });
+
+    imageInput.addEventListener("change", handleImageSelect);
   }
 
 
@@ -384,7 +402,65 @@ function createNewMessageIndicator() {
   return indicator;
 }
 
-// Send a message
+// Global variable to store selected image
+let selectedImage = null;
+
+// Handle image selection
+function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    alert('Please select an image file.');
+    return;
+  }
+
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert('Image size must be less than 5MB.');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    selectedImage = {
+      name: file.name,
+      content: e.target.result
+    };
+    showImagePreview(e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+// Show image preview
+function showImagePreview(imageSrc) {
+  const imagePreview = document.getElementById("image-preview");
+  if (!imagePreview) return;
+
+  imagePreview.innerHTML = `
+    <img src="${imageSrc}" alt="Preview">
+    <button class="remove-image" onclick="removeImagePreview()">×</button>
+  `;
+  imagePreview.classList.remove("hidden");
+}
+
+// Remove image preview
+window.removeImagePreview = function() {
+  const imagePreview = document.getElementById("image-preview");
+  const imageInput = document.getElementById("image-input");
+
+  if (imagePreview) {
+    imagePreview.innerHTML = "";
+    imagePreview.classList.add("hidden");
+  }
+  if (imageInput) {
+    imageInput.value = "";
+  }
+  selectedImage = null;
+}
+
+// Send a message (text or image)
 function sendMessage() {
   const messageText = document.getElementById("message-text");
   if (!messageText) {
@@ -393,16 +469,29 @@ function sendMessage() {
   }
 
   const content = messageText.value.trim();
-  if (!content || !currentChatUser) return;
+
+  // Check if we have either text content or an image
+  if (!content && !selectedImage) return;
+  if (!currentChatUser) return;
 
   const message = {
     receiver_id: currentChatUser.Id,
     content: content,
   };
 
+  // Add image data if present
+  if (selectedImage) {
+    message.image_url = selectedImage.name;
+    message.image_content = selectedImage.content;
+    message.message_type = content ? "text" : "image"; // Mixed or image-only
+  } else {
+    message.message_type = "text";
+  }
+
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(message));
     messageText.value = "";
+    removeImagePreview(); // Clear image preview after sending
     isTyping = false;
     clearTimeout(typingTimer);
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -423,6 +512,7 @@ function sendMessage() {
         if (socket && socket.readyState === WebSocket.OPEN) {
           socket.send(JSON.stringify(message));
           messageText.value = "";
+          removeImagePreview();
           scrollToBottom();
         }
       }, 500);
@@ -560,37 +650,108 @@ export async function fetchMessages(otherUserId, page = 1, append = false, autoS
 
 // Add this function to create message elements
 function createMessageElement(message) {
-
   const messageDiv = document.createElement("div");
-  messageDiv.className =
-    message.sender_id == currentUser.id
-      ? "message message-sent"
-      : "message message-received";
+  let className = message.sender_id == currentUser.id
+    ? "message message-sent"
+    : "message message-received";
 
   // Store message ID as data attribute to help prevent duplicates
   if (message.ID) {
     messageDiv.dataset.id = message.ID;
   }
+
   const header = document.createElement("div");
-  header.style.color = "black"
-  header.style.fontSize = "20px"
-  header.style.fontWeight = 900
+  header.style.color = "black";
+  header.style.fontSize = "20px";
+  header.style.fontWeight = 900;
   header.className = "message-header";
   header.textContent = message.name;
 
-  const content = document.createElement("div");
-  content.className = "message-content";
-  content.textContent = message.content;
+  // Handle different message types
+  const hasText = message.content && message.content.trim() !== "";
+  const hasImage = message.image_content || message.image_url;
+
+  if (hasImage && !hasText) {
+    className += " image-only";
+  }
+  messageDiv.className = className;
+
+  // Add text content if present
+  if (hasText) {
+    const content = document.createElement("div");
+    content.className = "message-content";
+    content.textContent = message.content;
+    messageDiv.appendChild(header);
+    messageDiv.appendChild(content);
+  } else if (hasImage) {
+    // For image-only messages, still show header but smaller
+    header.style.fontSize = "16px";
+    messageDiv.appendChild(header);
+  }
+
+  // Add image if present
+  if (hasImage) {
+    const imageContainer = document.createElement("div");
+    imageContainer.className = "message-image";
+
+    const img = document.createElement("img");
+    img.src = message.image_content || message.image_url;
+    img.alt = "Shared image";
+    img.loading = "lazy";
+
+    // Add click handler to view full size
+    img.addEventListener("click", () => {
+      openImageModal(img.src);
+    });
+
+    imageContainer.appendChild(img);
+    messageDiv.appendChild(imageContainer);
+  }
 
   const time = document.createElement("div");
   time.className = "message-time";
   time.textContent = formatTime(new Date(message.timestamp));
-
-  messageDiv.appendChild(header);
-  messageDiv.appendChild(content);
   messageDiv.appendChild(time);
 
   return messageDiv;
+}
+
+// Function to open image in modal for full view
+function openImageModal(imageSrc) {
+  // Create modal overlay
+  const modal = document.createElement("div");
+  modal.className = "image-modal";
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    cursor: pointer;
+  `;
+
+  // Create image element
+  const img = document.createElement("img");
+  img.src = imageSrc;
+  img.style.cssText = `
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 8px;
+  `;
+
+  // Close modal when clicked
+  modal.addEventListener("click", () => {
+    document.body.removeChild(modal);
+  });
+
+  modal.appendChild(img);
+  document.body.appendChild(modal);
 }
 
 // Update the scroll class for CSS effects
@@ -720,6 +881,14 @@ function updateUnreadBadges() {
   });
 }
 
+// Get CSRF token from cookie
+function getCSRFTokenFromCookie() {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; csrf_token=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
 // Mark messages as read
 async function markMessagesAsRead(senderId) {
   if (!currentUser || !currentUser.id) {
@@ -728,13 +897,21 @@ async function markMessagesAsRead(senderId) {
   }
 
   try {
+    const token = getCSRFTokenFromCookie();
     const formData = new FormData();
     formData.append("user_id", currentUser.id);
     formData.append("sender_id", senderId);
 
+    const headers = {};
+    if (token) {
+      headers["X-CSRF-Token"] = token;
+    }
+
     await fetch("/api/mark-read", {
       method: "POST",
+      headers,
       body: formData,
+      credentials: "include"
     });
 
     // Update unread counts
@@ -798,8 +975,10 @@ setInterval(() => {
 }, 10000); // Check every 10 seconds
 
 function getSessionIdFromCookies() {
-  const match = document.cookie.match(/session_id="?([a-f0-9\-]+)"?/i);
-  return match ? match[1] : null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; session_id=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
 }
 
 
