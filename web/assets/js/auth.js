@@ -1,6 +1,51 @@
 import { Feeds } from "./feeds.js";
 import { authTemplate } from "./templates.js";
 
+// CSRF token management
+let csrfToken = null;
+
+// Get CSRF token from server
+async function getCSRFToken() {
+  try {
+    const response = await fetch("/csrf-token", {
+      method: "GET",
+      credentials: "include"
+    });
+    const data = await response.json();
+    csrfToken = data.csrf_token;
+    return csrfToken;
+  } catch (error) {
+    console.error("Failed to get CSRF token:", error);
+    return null;
+  }
+}
+
+// Get CSRF token from cookie
+function getCSRFTokenFromCookie() {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; csrf_token=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
+// Ensure we have a CSRF token before making requests
+async function ensureCSRFToken() {
+  if (!csrfToken) {
+    csrfToken = getCSRFTokenFromCookie() || await getCSRFToken();
+  }
+  return csrfToken;
+}
+
+// Show error message to user
+function showError(message) {
+  const errorElement = document.getElementById("errors");
+  if (errorElement) {
+    errorElement.textContent = message;
+    errorElement.style.color = "#ff4444";
+    errorElement.style.marginTop = "10px";
+  }
+}
+
 // Add session monitoring functionality
 let sessionCheckInterval = null;
 
@@ -41,149 +86,249 @@ export function stopSessionMonitoring() {
   }
 }
 
-export function Signup() {
-  const nickname = document.getElementById("nickname").value;
-  const age = document.getElementById("age").value;
-  const genderValue = document.querySelector(
-    'input[name="gender"]:checked'
-  )?.value;
-  const fname = document.getElementById("fname").value;
-  const lname = document.getElementById("lname").value;
-  const email = document.getElementById("email").value;
+export async function Signup() {
+  const nickname = document.getElementById("nickname").value.trim();
+  const age = document.getElementById("age").value.trim();
+  const genderValue = document.querySelector('input[name="gender"]:checked')?.value;
+  const fname = document.getElementById("fname").value.trim();
+  const lname = document.getElementById("lname").value.trim();
+  const email = document.getElementById("email").value.trim();
   const pswd = document.getElementById("pswd").value;
   const cpswd = document.getElementById("cpswd").value;
-  const err = document.getElementById("errors");
   const emailInput = document.getElementById("email");
 
-  if (
-    nickname == "" ||
-    age == "" ||
-    genderValue == "" ||
-    fname == "" ||
-    lname == "" ||
-    email == "" ||
-    pswd == "" ||
-    cpswd == ""
-  ) {
-    document.getElementById("app").innerHTML = authTemplate();
-    loadAuthView("fill all the fields");
+  // Clear previous errors
+  const errorElement = document.getElementById("errors");
+  if (errorElement) errorElement.textContent = "";
+
+  // Validation
+  if (!nickname || !age || !genderValue || !fname || !lname || !email || !pswd || !cpswd) {
+    showError("Please fill in all fields");
     return;
   }
 
-  if (Number(age) < 16 && Number(age) > 2009) {
-    loadAuthView("age must be between 16 and 2009");
+  // Fix the age validation logic
+  const ageNum = Number(age);
+  if (isNaN(ageNum) || ageNum < 16 || ageNum > 100) {
+    showError("Age must be between 16 and 100");
     return;
   }
 
   if (!emailInput.checkValidity()) {
-    console.log("Please enter an email address");
-    loadAuthView("Please enter a valid email address");
+    showError("Please enter a valid email address");
     return;
   }
 
   if (pswd !== cpswd) {
-    console.log("passwords do not match");
-    loadAuthView("passwords do not match");
+    showError("Passwords do not match");
     return;
   }
 
-  let ReqBody = {
-    nickname: nickname,
-    age: age,
+  if (pswd.length < 6) {
+    showError("Password must be at least 6 characters long");
+    return;
+  }
+
+  const reqBody = {
+    nickname,
+    age,
     gender: genderValue,
-    fname: fname,
-    lname: lname,
-    email: email,
+    fname,
+    lname,
+    email,
     password: pswd,
   };
 
   try {
-    fetch("/register", {
+    // Ensure we have a CSRF token
+    const token = await ensureCSRFToken();
+    if (!token) {
+      showError("Security token unavailable. Please refresh the page.");
+      return;
+    }
+
+    const response = await fetch("/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRF-Token": token
       },
-      body: JSON.stringify(ReqBody),
-      credentials: "include" // Important for cookies
-    })
-      .then((res) => {
-        return res.json();
-      })
-      .then((data) => {
-        console.log(data);
-        if (data.type === "success") {
-          // Start session monitoring after successful registration
-          startSessionMonitoring();
-          Feeds();
-        } else {
-          loadAuthView(data.type);
-        }
-      });
+      body: JSON.stringify(reqBody),
+      credentials: "include"
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.type === "success") {
+      // Start session monitoring after successful registration
+      startSessionMonitoring();
+      Feeds();
+    } else {
+      showError(data.type || "Registration failed. Please try again.");
+    }
   } catch (error) {
-    console.log(error.message);
-    loadAuthView("An error occurred. Please try again.");
+    console.error("Registration error:", error);
+    showError("An error occurred. Please try again.");
   }
 }
 
-export  function Login() {
+export async function Login() {
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
 
-  fetch("/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-    credentials: "include" // Important for cookies
-  })
-    .then((res) => {
-      const result =  res.json()
-      if (!res.ok) throw new Error("Login failed");
-      return result;
-    })
-    .then((data) => {
-      console.log("Login successful:", data);
-      // Start session monitoring after successful login
-      startSessionMonitoring();
-      Feeds();
-    })
-    .catch((err) => {
-    
-      alert(err.message)
+  // Clear any previous error messages
+  const errorElement = document.getElementById("errors");
+  if (errorElement) errorElement.textContent = "";
+
+  // Validate input
+  if (!username.trim() || !password.trim()) {
+    showError("Please enter both username and password");
+    return;
+  }
+
+  try {
+    // Ensure we have a CSRF token
+    const token = await ensureCSRFToken();
+    if (!token) {
+      showError("Security token unavailable. Please refresh the page.");
+      return;
+    }
+
+    const response = await fetch("/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": token
+      },
+      body: JSON.stringify({ username, password }),
+      credentials: "include"
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Login failed");
+    }
+
+    const data = await response.json();
+    console.log("Login successful:", data);
+
+    // Start session monitoring after successful login
+    startSessionMonitoring();
+    Feeds();
+  } catch (err) {
+    console.error("Login error:", err);
+    showError(err.message || "Login failed. Please try again.");
+  }
 }
 
 // Updated the logout function to clean up session monitoring
-export function Logout() {
-  fetch("/logout", {
-    method: "POST",
-    credentials: "include" // Important for cookies
-  })
-    .then((res) => res.json())
-    .then((data) => {
-      // Stop monitoring when logged out
-      stopSessionMonitoring();
-      loadAuthView();
-    })
-    .catch((err) => {
-      console.error("Logout error:", err);
-      loadAuthView("Error during logout");
+export async function Logout() {
+  try {
+    // Ensure we have a CSRF token
+    const token = await ensureCSRFToken();
+    if (!token) {
+      console.warn("No CSRF token available for logout");
+      // Still proceed with logout even without token
+    }
+
+    const headers = { "Content-Type": "application/json" };
+    if (token) {
+      headers["X-CSRF-Token"] = token;
+    }
+
+    const response = await fetch("/logout", {
+      method: "POST",
+      headers,
+      credentials: "include"
     });
+
+    // Stop monitoring when logged out (regardless of response)
+    stopSessionMonitoring();
+    loadAuthView();
+  } catch (err) {
+    console.error("Logout error:", err);
+    // Still show login view even if logout failed
+    stopSessionMonitoring();
+    loadAuthView("Error during logout");
+  }
 }
 
-export function loadAuthView(error) {
+export async function loadAuthView(error) {
   // Stop session monitoring when showing login view
   stopSessionMonitoring();
 
   document.getElementById("app").innerHTML = authTemplate();
 
   if (error) {
-    document.getElementById("errors").textContent = error;
+    showError(error);
   }
 
+  // Get CSRF token when loading auth view
+  await getCSRFToken();
+
+  // Add event listeners
   document.getElementById("signup")
     .addEventListener("click", () => Signup());
   document.getElementById("login")
     .addEventListener("click", () => Login());
+
+  // Add real-time validation
+  setupFormValidation();
+}
+
+// Setup real-time form validation
+function setupFormValidation() {
+  const signupForm = document.getElementById("signup-form");
+  const loginForm = document.getElementById("login-form");
+
+  // Password confirmation validation
+  const password = document.getElementById("pswd");
+  const confirmPassword = document.getElementById("cpswd");
+
+  if (password && confirmPassword) {
+    confirmPassword.addEventListener("input", () => {
+      if (confirmPassword.value && password.value !== confirmPassword.value) {
+        confirmPassword.setCustomValidity("Passwords do not match");
+      } else {
+        confirmPassword.setCustomValidity("");
+      }
+    });
+
+    password.addEventListener("input", () => {
+      if (confirmPassword.value && password.value !== confirmPassword.value) {
+        confirmPassword.setCustomValidity("Passwords do not match");
+      } else {
+        confirmPassword.setCustomValidity("");
+      }
+    });
+  }
+
+  // Add input validation styling
+  const inputs = document.querySelectorAll("input");
+  inputs.forEach(input => {
+    input.addEventListener("blur", validateInput);
+    input.addEventListener("input", clearValidationOnInput);
+  });
+}
+
+// Validate individual input
+function validateInput(event) {
+  const input = event.target;
+  const isValid = input.checkValidity();
+
+  if (!isValid) {
+    input.classList.add("invalid");
+    input.classList.remove("valid");
+  } else {
+    input.classList.add("valid");
+    input.classList.remove("invalid");
+  }
+}
+
+// Clear validation styling when user starts typing
+function clearValidationOnInput(event) {
+  const input = event.target;
+  input.classList.remove("invalid", "valid");
 }
 
 // Add an initialization function to check session on page load
