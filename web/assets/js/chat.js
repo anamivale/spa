@@ -158,7 +158,8 @@ export function connectWebSocket() {
     socket = null;
   }
 
-  socket = new WebSocket(`ws://${window.location.host}/ws?user_id=${currentUser.id}`);
+const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+socket = new WebSocket(`${wsProtocol}://${window.location.host}/ws?user_id=${currentUser.id}`);
 
   socket.onopen = () => {
     console.log("WebSocket connection established");
