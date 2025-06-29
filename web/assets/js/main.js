@@ -3,6 +3,7 @@ import { Feeds } from "./feeds.js";
 import { authTemplate } from "./templates.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+
   if (IsCookiesPresent()) {
     Feeds();
   } else {
@@ -19,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function IsCookiesPresent() {
+  console.log(getCookie("session_id"));
+  
   return getCookie("session_id") !== null;
 }
 function getCookie(name) {
