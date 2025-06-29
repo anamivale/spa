@@ -58,6 +58,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session_id",
 		Value:   sid,
+		Secure:   true,
 		Expires: expiration,
 		Path:    "/",
 	})
@@ -129,6 +130,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session_id",
 		Value:   sid,
+		Secure:   true,
 		Expires: expiration,
 		Path:    "/",
 	})
