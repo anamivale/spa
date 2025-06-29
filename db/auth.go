@@ -124,11 +124,15 @@ func LogoutUser(id string) error {
 func GetUser(r *http.Request) (*models.User, error) {
 	// Step 1: Retrieve session_id from the cookie
 	cookie, err := r.Cookie("session_id")
-	ids := strings.Split(cookie.Value, ":")
 	if err != nil {
 		// Cookie not found
 		fmt.Println("Cookie not found:", err)
 		return nil, err
+	}
+
+	ids := strings.Split(cookie.Value, ":")
+	if len(ids) != 2 {
+		return nil, errors.New("invalid session cookie format")
 	}
 	userID := ids[0]
 
