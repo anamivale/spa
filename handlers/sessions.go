@@ -49,6 +49,7 @@ func SessionCheckHandler(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{
 			Name:    "session_id",
 			Value:   "",
+			Secure:   true,
 			Expires: time.Now().Add(-time.Hour),
 			Path:    "/",
 		})
@@ -89,6 +90,7 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 				Value:   "",
 				Expires: time.Now().Add(-time.Hour),
 				Path:    "/",
+				Secure:   true,
 			})
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
