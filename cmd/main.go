@@ -4,14 +4,18 @@ import (
 	"fmt"
 	"net/http"
 	"mime"
+	"spa/config"
 	"spa/db"
 	"spa/handlers"
+	"spa/utils"
 )
 
 func main() {
+	// Load configuration
+	cfg := config.LoadConfig()
 
 	mime.AddExtensionType(".js", "application/javascript")
-	mime.AddExtensionType(".css", "text/css") 
+	mime.AddExtensionType(".css", "text/css")
 	// Initialize the database
 	db.Init()
 
@@ -26,16 +30,19 @@ func main() {
 		http.ServeFile(w, r, "web/index.html")
 	})
 
-	// Post related handlers
-	http.HandleFunc("/post", handlers.HandleCreatePost)
-	http.HandleFunc("/feeds", handlers.HandleGetPosts)
-	http.HandleFunc("/comment", handlers.HandleCreateComment)
-	http.HandleFunc("/like", handlers.LikeHandler)
+	// Post related handlers (with CSRF protection for state-changing operations)
+	http.HandleFunc("/post", utils.CSRFMiddleware(handlers.HandleCreatePost))
+	http.HandleFunc("/feeds", handlers.HandleGetPosts) // GET request, no CSRF needed
+	http.HandleFunc("/comment", utils.CSRFMiddleware(handlers.HandleCreateComment))
+	http.HandleFunc("/like", utils.CSRFMiddleware(handlers.LikeHandler))
 
-	// Authentication handlers
-	http.HandleFunc("/register", handlers.Register)
-	http.HandleFunc("/login", handlers.Login)
-	http.HandleFunc("/logout", handlers.LogoutHandler)
+	// CSRF token endpoint
+	http.HandleFunc("/csrf-token", handlers.CSRFTokenHandler)
+
+	// Authentication handlers (with CSRF protection)
+	http.HandleFunc("/register", utils.CSRFMiddleware(handlers.Register))
+	http.HandleFunc("/login", utils.CSRFMiddleware(handlers.Login))
+	http.HandleFunc("/logout", utils.CSRFMiddleware(handlers.LogoutHandler))
 
 	// Messaging handlers
 	http.HandleFunc("/api/messages", handlers.HandleMessage)
@@ -45,6 +52,15 @@ func main() {
 	http.HandleFunc("/session-check", handlers.SessionCheckHandler)
 
 	// Start the server
-	fmt.Println("Server running at http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	serverAddr := ":" + cfg.Port
+	if cfg.IsProduction {
+		fmt.Printf("Server running in PRODUCTION mode on port %s\n", cfg.Port)
+		if cfg.EnableHTTPS {
+			fmt.Println("HTTPS enabled - ensure SSL certificates are configured")
+		}
+	} else {
+		fmt.Printf("Server running in DEVELOPMENT mode at http://localhost:%s\n", cfg.Port)
+	}
+
+	http.ListenAndServe(serverAddr, nil)
 }
